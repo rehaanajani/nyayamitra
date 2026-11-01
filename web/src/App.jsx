@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Settings2 } from 'lucide-react'
 import { api } from './lib/api'
-import Settings from './components/Settings'
 import Home from './pages/Home'
 import Sahay from './pages/Sahay'
 import Abhyas from './pages/Abhyas'
@@ -34,14 +32,10 @@ function StatusDot({ on, label }) {
 
 export default function App() {
   const route = useRoute()
-  const [settings, setSettings] = useState(false)
   const [status, setStatus] = useState({})
 
   useEffect(() => {
-    const refresh = () => api('/api/status').then(setStatus).catch(() => setStatus({ offline: true }))
-    refresh()
-    window.addEventListener('nm-keys', refresh)
-    return () => window.removeEventListener('nm-keys', refresh)
+    api('/api/status').then(setStatus).catch(() => setStatus({ offline: true }))
   }, [])
 
   const page = route.path.startsWith('/sahay') ? 'sahay' : route.path.startsWith('/abhyas') ? 'abhyas' : 'home'
@@ -66,9 +60,6 @@ export default function App() {
               <StatusDot on={status.gnani} label="Timbre" />
               <StatusDot on={status.llm} label={status.evon ? 'Evon' : 'LLM'} />
             </div>
-            <button onClick={() => setSettings(true)} className="pill pill-light !px-3 !py-2" aria-label="API keys">
-              <Settings2 size={16} /> <span className="hidden sm:inline">Keys</span>
-            </button>
           </div>
         </div>
       </header>
@@ -82,12 +73,10 @@ export default function App() {
           transition={{ duration: 0.3 }}
         >
           {page === 'home' && <Home status={status} />}
-          {page === 'sahay' && <Sahay status={status} openSettings={() => setSettings(true)} />}
-          {page === 'abhyas' && <Abhyas status={status} params={route.params} openSettings={() => setSettings(true)} />}
+          {page === 'sahay' && <Sahay status={status} />}
+          {page === 'abhyas' && <Abhyas status={status} params={route.params} />}
         </motion.main>
       </AnimatePresence>
-
-      <Settings open={settings} onClose={() => setSettings(false)} />
     </div>
   )
 }
