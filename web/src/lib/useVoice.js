@@ -115,13 +115,17 @@ export default function useVoice({ lang, onTurn, onPartial }) {
     }
   }, [lang, flush])
 
-  const stop = useCallback(() => {
+  // close the mic: submit=true sends what was heard, false discards it (not your turn)
+  const close = useCallback((submit) => {
     listener.current?.stop()
     listener.current = null
     setListening(false)
     setMicLevel(0)
-    flush()
+    if (submit) flush()
+    else { clearTimeout(timer.current); buffer.current = []; started.current = 0; setPartial('') }
   }, [flush])
+  const stop = useCallback(() => close(true), [close])
+  const pause = useCallback(() => close(false), [close])
 
   useEffect(() => () => {
     listener.current?.stop()
@@ -129,5 +133,5 @@ export default function useVoice({ lang, onTurn, onPartial }) {
     clearTimeout(timer.current)
   }, [])
 
-  return { listening, speaking, micLevel, outLevel, partial, error, setError, start, stop, say, stopSpeaking }
+  return { listening, speaking, micLevel, outLevel, partial, error, setError, start, stop, pause, submitNow: flush, say, stopSpeaking }
 }
