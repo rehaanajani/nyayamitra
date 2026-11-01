@@ -43,7 +43,7 @@ export default function LanguageMenu({ align = 'right' }) {
           >
             <div className="flex items-center justify-between px-3 pb-2 pt-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
               <span>Language · भाषा</span>
-              <span className="inline-flex items-center gap-1 normal-case tracking-normal"><Mic size={12} /> = voice</span>
+              <span className="inline-flex items-center gap-1 normal-case tracking-normal"><Mic size={12} /> voice in all</span>
             </div>
             <div className="grid max-h-[60vh] grid-cols-2 gap-1 overflow-y-auto scroll-soft">
               {LANGUAGES.map((l) => (
@@ -58,12 +58,10 @@ export default function LanguageMenu({ align = 'right' }) {
                     <span className="block truncate text-[15px] leading-tight" dir={l.rtl ? 'rtl' : undefined}>{l.name}</span>
                     <span className={`block text-xs ${l.code === lang ? 'text-white/60' : 'text-muted'}`}>{l.english}</span>
                   </span>
-                  {l.voice && <Mic size={13} className={l.code === lang ? 'text-white/70' : 'text-violet-deep'} />}
                   {l.code === lang && <Check size={14} />}
                 </button>
               ))}
             </div>
-            <p className="px-3 pb-1 pt-2 text-xs text-muted">Languages without the mic work by typing.</p>
           </motion.div>
         )}
       </AnimatePresence>
