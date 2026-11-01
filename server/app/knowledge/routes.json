@@ -1,0 +1,160 @@
+{
+  "_note": "Vetted path cards for सहाय. The LLM only classifies the problem and collects facts; everything shown to the user as law comes from this file. Every route has reviewed:false until a law faculty member or advocate signs off. Legal information, not legal advice.",
+  "helplines": [
+    { "id": "emergency", "label": "Emergency (police, ambulance, fire)", "number": "112" },
+    { "id": "women", "label": "Women helpline", "number": "181" },
+    { "id": "child", "label": "Childline", "number": "1098" },
+    { "id": "legal_aid", "label": "NALSA free legal aid", "number": "15100" },
+    { "id": "cyber", "label": "Cyber fraud (report within hours)", "number": "1930" },
+    { "id": "consumer", "label": "National Consumer Helpline", "number": "1915" }
+  ],
+  "legal_aid": {
+    "title": "Free lawyer from the District Legal Services Authority (DLSA)",
+    "body": "Every district has a DLSA that gives a free lawyer to eligible people under Section 12 of the Legal Services Authorities Act, 1987: women and children, SC/ST members, industrial workmen, people in custody, persons with disabilities, victims of disaster or trafficking, and people below the state's income limit. Call 15100 or visit the DLSA office at your district court."
+  },
+  "issues": [
+    {
+      "id": "salary",
+      "title": "Salary or wages not paid",
+      "keywords": ["salary", "wages", "tankhwah", "pagar", "payment nahi", "सैलरी", "वेतन", "தனக்கு சம்பளம்", "சம்பளம்"],
+      "ask": [
+        { "key": "employer", "q": "Who is the employer: a company, shop, contractor or person?" },
+        { "key": "months", "q": "For how many months is the salary pending, and roughly how much in total?" },
+        { "key": "proof", "q": "Do you have any proof: offer letter, salary slips, bank credits, WhatsApp messages or an attendance record?" },
+        { "key": "still_working", "q": "Are you still working there, or did you leave or get removed?" }
+      ],
+      "forum": "Labour Department of your district (Inspector-cum-Facilitator / Labour Commissioner)",
+      "steps": [
+        "Write to the employer by email or WhatsApp asking for the exact unpaid amount by a date. Keep the reply, or the silence, as proof.",
+        "Send a legal notice demanding payment within 15 days. सहाय can draft it below.",
+        "File a wage claim with the Labour Department of your district. Many states accept it online, and the Shram Suvidha or Samadhan portals cover central-sphere establishments.",
+        "If the employer still does not pay, a civil suit for recovery of money is possible. Ask the DLSA for a free lawyer first."
+      ],
+      "documents": ["Offer or appointment letter", "Salary slips or bank statements showing past credits", "Attendance proof or ID card", "Messages with the employer about the payment"],
+      "deadline": "Act quickly. Wage claims have a time limit under the Code on Wages, 2019, and money recovery suits generally have three years under the Limitation Act. Verify your exact deadline with the DLSA.",
+      "cost": "A Labour Department complaint is usually free. You do not need a lawyer to file it.",
+      "draft": "legal_notice_salary",
+      "practice_case": null,
+      "reviewed": false
+    },
+    {
+      "id": "deposit",
+      "title": "Landlord not returning security deposit",
+      "keywords": ["deposit", "landlord", "rent", "makan malik", "advance", "kiraya", "मकान मालिक", "किराया", "வாடகை", "முன்பணம்"],
+      "ask": [
+        { "key": "amount", "q": "How much was the deposit, and when did you move out?" },
+        { "key": "agreement", "q": "Was there a written rent agreement, and was it registered?" },
+        { "key": "reason", "q": "What reason is the landlord giving, if any: damage, unpaid bills, or no reply?" },
+        { "key": "proof", "q": "Do you have proof of paying the deposit: bank transfer, receipt or messages?" }
+      ],
+      "forum": "Rent Authority under your state's tenancy law where one exists, otherwise the civil court",
+      "steps": [
+        "Ask in writing for the deposit with a date. Offer to settle genuine dues such as an unpaid electricity bill against it.",
+        "Send a legal notice demanding the deposit within 15 days. सहाय can draft it below.",
+        "If your state has a Rent Authority (for example under the Tamil Nadu Regulation of Rights and Responsibilities of Landlords and Tenants Act, 2017), apply there. Otherwise file a civil suit for recovery.",
+        "Mediation through the DLSA or a Lok Adalat is free and often faster for deposit disputes."
+      ],
+      "documents": ["Rent agreement", "Proof of deposit payment", "Move-out date proof and photos of the flat when you left", "Messages with the landlord"],
+      "deadline": "A suit for recovery of money is generally within three years. Send the notice now so the trail starts.",
+      "cost": "A notice costs nothing if you send it yourself. A Lok Adalat has no court fee.",
+      "draft": "legal_notice_deposit",
+      "practice_case": null,
+      "reviewed": false
+    },
+    {
+      "id": "consumer",
+      "title": "Defective product, bad service or refund refused",
+      "keywords": ["refund", "defective", "product", "service", "company", "order", "warranty", "replacement", "consumer", "रिफंड", "खराब", "சேவை", "பணம் திரும்ப"],
+      "ask": [
+        { "key": "what", "q": "What did you buy or pay for, from which company, and when?" },
+        { "key": "amount", "q": "How much did you pay?" },
+        { "key": "problem", "q": "What went wrong, and what did the company say when you complained?" },
+        { "key": "proof", "q": "Do you have the bill or invoice, and any complaint or ticket number?" }
+      ],
+      "forum": "District Consumer Disputes Redressal Commission (claims up to ₹50 lakh)",
+      "steps": [
+        "Register a grievance on the National Consumer Helpline: call 1915 or use the NCH app or website. It is free and companies often settle there.",
+        "Send a written notice to the company asking for refund or replacement within 15 days.",
+        "File a consumer complaint online on e-Daakhil / e-Jagriti at the District Commission. You can argue it yourself; Section 70 of the Consumer Protection Act, 2019 lets you appear in person.",
+        "Ask for refund, compensation for harassment, and litigation costs."
+      ],
+      "documents": ["Invoice or bill", "Warranty card", "Screenshots of the order, complaint tickets and replies", "Photos or video of the defect"],
+      "deadline": "File within two years of the problem arising (Section 69, Consumer Protection Act, 2019).",
+      "cost": "No court fee for claims up to ₹5 lakh. A lawyer is optional.",
+      "draft": "consumer_notice",
+      "practice_case": "consumer-refund",
+      "reviewed": false
+    },
+    {
+      "id": "cyber_fraud",
+      "title": "Online fraud or money stolen through UPI, OTP or a scam call",
+      "keywords": ["fraud", "scam", "otp", "upi", "kyc", "hacked", "cyber", "paise kat gaye", "धोखा", "ठगी", "மோசடி"],
+      "urgent": true,
+      "ask": [
+        { "key": "when", "q": "When did the money leave your account? Minutes and hours matter here." },
+        { "key": "amount", "q": "How much was taken, and from which bank or app?" },
+        { "key": "how", "q": "How did it happen: a call, a link, an app, or a QR code?" }
+      ],
+      "forum": "National Cyber Crime Reporting Portal and your bank",
+      "steps": [
+        "Call 1930 right now, or report at cybercrime.gov.in. Fast reporting lets banks try to freeze the money in the fraudster's account.",
+        "Call your bank's fraud line and block the card, UPI or net banking. Ask for the complaint reference number.",
+        "Keep every screenshot: the transaction ID, the caller's number and the messages. Do not delete anything.",
+        "Follow up for an FIR at the cyber police station with the 1930 acknowledgement number."
+      ],
+      "documents": ["Transaction IDs and bank SMS", "Caller number, links and screenshots", "1930 / portal acknowledgement number", "Bank complaint reference"],
+      "deadline": "Immediately. The first few hours decide whether money can be frozen.",
+      "cost": "Free.",
+      "draft": null,
+      "practice_case": null,
+      "reviewed": false
+    },
+    {
+      "id": "fir_refused",
+      "title": "Police refusing to register an FIR",
+      "keywords": ["fir", "police", "thana", "complaint nahi", "station", "पुलिस", "एफआईआर", "थाना", "காவல்"],
+      "ask": [
+        { "key": "what", "q": "What happened, and when? Was anyone hurt, threatened, or was property stolen?" },
+        { "key": "station", "q": "Which police station did you go to, and what did they say?" },
+        { "key": "proof", "q": "Do you have any proof or witnesses?" }
+      ],
+      "forum": "Police station, then the Superintendent of Police, then the Magistrate",
+      "steps": [
+        "For a cognizable offence the police must register an FIR (Lalita Kumari v. Govt. of U.P., 2013). You can file at any police station as a Zero FIR, or file an e-FIR where your state allows it (Section 173(1), BNSS).",
+        "If they refuse, send the substance of your complaint in writing to the Superintendent of Police by post or email (Section 173(4), BNSS). Keep the receipt.",
+        "If nothing happens, apply to the Judicial Magistrate to order an investigation (Section 175(3), BNSS).",
+        "For offences punishable with 3 to 7 years, the police may first do a preliminary inquiry within 14 days (Section 173(3), BNSS)."
+      ],
+      "documents": ["Written complaint with date, time, place and what happened", "Proof of visiting the station or refusal", "Medical report if hurt", "Names of witnesses"],
+      "deadline": "Report as soon as possible. Delay is often used to doubt a complaint.",
+      "cost": "Free. A lawyer helps at the Magistrate stage; the DLSA can provide one.",
+      "draft": "sp_complaint",
+      "practice_case": "anticipatory-bail",
+      "reviewed": false
+    },
+    {
+      "id": "cheque_bounce",
+      "title": "Cheque bounced",
+      "keywords": ["cheque", "check bounce", "bounce", "dishonour", "चेक", "காசோலை"],
+      "ask": [
+        { "key": "amount", "q": "What was the cheque amount, and what was it for: a loan, a sale, or rent?" },
+        { "key": "date", "q": "On what date did the bank return it, and what reason did the return memo give?" },
+        { "key": "notice", "q": "Have you sent a demand notice to the person yet?" }
+      ],
+      "forum": "Judicial Magistrate (complaint under Section 138, Negotiable Instruments Act, 1881)",
+      "steps": [
+        "Send a written demand notice to the drawer within 30 days of receiving the bank's return memo.",
+        "The drawer has 15 days from receiving the notice to pay.",
+        "If they do not pay, file a complaint before the Magistrate within one month after those 15 days end.",
+        "The cheque must have been for a legally enforceable debt. Keep the loan or sale proof ready."
+      ],
+      "documents": ["Original cheque", "Bank return memo", "Copy of the demand notice and postal or courier proof", "Proof of the debt"],
+      "deadline": "Strict: notice within 30 days of the return memo, complaint within 1 month after the 15-day payment window.",
+      "cost": "Court fee depends on the cheque amount and the state.",
+      "draft": "cheque_notice",
+      "practice_case": "cheque-bounce",
+      "reviewed": false
+    }
+  ],
+  "danger_words": ["maar", "beat", "kill", "jaan se", "threat", "dhamki", "suicide", "khudkushi", "rape", "abuse", "मार", "धमकी", "அடி", "கொலை"]
+}
