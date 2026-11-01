@@ -1,0 +1,59 @@
+{
+  "_note": "Synthetic district-court matters for अभ्यास. Names, numbers and facts are invented.",
+  "cases": [
+    {
+      "id": "anticipatory-bail",
+      "title": "Anticipatory bail: State v. Ravi Kumar",
+      "court": "Court of the Additional Sessions Judge, Lucknow",
+      "language": "hi",
+      "stage": "Hearing on an application for anticipatory bail under Section 482, BNSS",
+      "you_are": "Counsel for the applicant, Ravi Kumar",
+      "facts": [
+        "Ravi Kumar, 34, runs a small mobile repair shop in Aminabad.",
+        "A supplier, Sunil Traders, alleges Ravi took ₹2.4 lakh of phone parts on credit in March and never paid, and has filed an FIR for cheating under Section 318(4), BNS.",
+        "Ravi says he paid ₹1.6 lakh by UPI and that the remainder is a civil dispute over defective stock.",
+        "Ravi has no previous cases, has deep roots in Lucknow, and has offered to join the investigation.",
+        "The police have issued no notice under Section 35, BNSS so far; Ravi fears arrest."
+      ],
+      "bench_focus": ["Is this a civil dispute dressed as a criminal case?", "UPI proof of ₹1.6 lakh", "Flight risk and roots in the community", "Will the applicant cooperate with the investigation?", "Correct section: BNSS 482, not CrPC 438"],
+      "opponent": "Additional Public Prosecutor",
+      "verdict_axes": ["law", "facts", "bench_handling", "delivery"]
+    },
+    {
+      "id": "cheque-bounce",
+      "title": "Cheque dishonour: Meenakshi Sundaram v. Karthik Raja",
+      "court": "Court of the Judicial Magistrate, Saidapet, Chennai",
+      "language": "ta",
+      "stage": "Hearing on the complaint under Section 138, Negotiable Instruments Act, 1881",
+      "you_are": "Counsel for the complainant, Meenakshi Sundaram",
+      "facts": [
+        "Meenakshi Sundaram lent ₹3,00,000 to her neighbour Karthik Raja in January for his daughter's college fees, by bank transfer.",
+        "Karthik gave a cheque for ₹3,00,000 dated 10 June. It was returned on 14 June with the memo 'Funds Insufficient'.",
+        "Meenakshi sent a demand notice by speed post on 2 July, received on 5 July.",
+        "No payment was made within 15 days. The complaint was filed on 8 August.",
+        "Karthik's defence: the cheque was a blank security cheque and the loan was ₹1,50,000, not ₹3,00,000."
+      ],
+      "bench_focus": ["Notice within 30 days of the return memo", "Complaint within limitation", "Legally enforceable debt and the bank transfer", "Presumption under Section 139 NI Act", "Blank security cheque defence"],
+      "opponent": "Counsel for the accused",
+      "verdict_axes": ["law", "facts", "bench_handling", "delivery"]
+    },
+    {
+      "id": "consumer-refund",
+      "title": "Consumer complaint: Arjun Mehta v. ZipKart Electronics",
+      "court": "District Consumer Disputes Redressal Commission, Pune",
+      "language": "en",
+      "stage": "Final arguments on a consumer complaint",
+      "you_are": "The complainant, appearing in person (Section 70, Consumer Protection Act, 2019)",
+      "facts": [
+        "Arjun Mehta bought a ₹42,000 laptop from ZipKart Electronics' website in February.",
+        "The screen started flickering within three weeks. The service centre kept it twice for 18 days in total.",
+        "ZipKart refused a refund, saying the 7-day return window was over and only repair is covered.",
+        "Arjun has the invoice, three service job sheets and emails showing six complaints.",
+        "He seeks a refund, ₹25,000 compensation for harassment and ₹5,000 costs."
+      ],
+      "bench_focus": ["Deficiency in service vs manufacturing defect", "Repeated repairs within warranty", "Does the return window bar a refund for a defect?", "How was ₹25,000 compensation calculated?", "Proof of each complaint"],
+      "opponent": "Counsel for ZipKart Electronics",
+      "verdict_axes": ["law", "facts", "bench_handling", "delivery"]
+    }
+  ]
+}
