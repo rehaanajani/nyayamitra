@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import abhyas, gnani, llm, sahay
-from .config import LANGS, VOICES, resolve_keys
+from .config import LANGS, VOICES, has_voice, resolve_keys
 
 app = FastAPI(title="Nyayamitra")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -30,13 +30,13 @@ async def status(request: Request):
         "llm": k.has_llm,
         "llm_model": k.llm_model,
         "evon": "evon" in k.llm_model.lower(),
-        "languages": {c: v["name"] for c, v in LANGS.items()},
+        "languages": [{"code": c, "name": v["name"], "english": v["english"], "voice": "tts" in v} for c, v in LANGS.items()],
     }
 
 
 @app.post("/api/check")
 async def check(request: Request):
-    """Settings panel 'Test' button: tries each service with the given keys."""
+    """Health check: tries each configured service once."""
     k = keys_from(request)
     out = {"gnani": None, "llm": None}
     if k.has_gnani:
@@ -66,7 +66,9 @@ class TTSReq(BaseModel):
 async def tts(req: TTSReq, request: Request):
     k = keys_from(request)
     if not k.has_gnani:
-        raise HTTPException(400, "Add a Gnani API key in Settings")
+        raise HTTPException(400, "GNANI_API_KEY is not set on the server")
+    if not has_voice(req.lang):
+        raise HTTPException(400, "Gnani has no voice for this language yet; text only")
     try:
         wav = await gnani.synthesize(req.text[:900], req.lang, VOICES.get(req.role, VOICES["sahay"]), k.gnani_key)
     except gnani.GnaniError as e:
@@ -78,7 +80,7 @@ async def tts(req: TTSReq, request: Request):
 async def stt(request: Request, audio: UploadFile = File(...), lang: str = Form("hi")):
     k = keys_from(request)
     if not k.has_gnani:
-        raise HTTPException(400, "Add a Gnani API key in Settings")
+        raise HTTPException(400, "GNANI_API_KEY is not set on the server")
     try:
         return await gnani.transcribe_file(await audio.read(), audio.filename or "clip.wav", lang, k.gnani_key)
     except gnani.GnaniError as e:
@@ -101,10 +103,14 @@ async def stt_stream(ws: WebSocket):
         return
     k = resolve_keys(start.get("keys") or {})
     if not k.has_gnani:
-        await ws.send_json({"type": "error", "message": "Add a Gnani API key in Settings"})
+        await ws.send_json({"type": "error", "message": "GNANI_API_KEY is not set on the server"})
         await ws.close()
         return
     lang = start.get("lang", "hi")
+    if not has_voice(lang):
+        await ws.send_json({"type": "error", "message": "Voice isn't available in this language yet. Please type."})
+        await ws.close()
+        return
     rate = int(start.get("sample_rate", 16000))
     try:
         upstream = await websockets.connect(
@@ -250,7 +256,7 @@ async def abhyas_custom(req: CustomCase, request: Request):
     try:
         return await abhyas.case_from_text(keys_from(request), req.text, req.lang)
     except llm.NoLLM:
-        raise HTTPException(400, "Connect an LLM in Settings to build a case from text")
+        raise HTTPException(400, "An LLM is needed to build a case from text")
     except ValueError as e:
         raise HTTPException(422, str(e))
 
