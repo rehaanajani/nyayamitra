@@ -1,0 +1,24 @@
+{
+  "_note": "Old-law to new-law map used by the अभ्यास bench to catch repealed citations. Since 1 July 2024 the IPC, CrPC and Evidence Act are replaced by the BNS, BNSS and BSA.",
+  "map": [
+    { "old": "CrPC 438", "new": "BNSS 482", "topic": "anticipatory bail" },
+    { "old": "CrPC 437", "new": "BNSS 480", "topic": "bail in non-bailable offences (Magistrate)" },
+    { "old": "CrPC 439", "new": "BNSS 483", "topic": "bail powers of Sessions Court and High Court" },
+    { "old": "CrPC 154", "new": "BNSS 173", "topic": "FIR" },
+    { "old": "CrPC 156", "new": "BNSS 175", "topic": "police investigation / Magistrate's order" },
+    { "old": "CrPC 41A", "new": "BNSS 35", "topic": "notice of appearance instead of arrest" },
+    { "old": "CrPC 125", "new": "BNSS 144", "topic": "maintenance" },
+    { "old": "CrPC 482", "new": "BNSS 528", "topic": "inherent powers of the High Court" },
+    { "old": "CrPC 164", "new": "BNSS 183", "topic": "statement before Magistrate" },
+    { "old": "IPC 420", "new": "BNS 318", "topic": "cheating" },
+    { "old": "IPC 406", "new": "BNS 316", "topic": "criminal breach of trust" },
+    { "old": "IPC 498A", "new": "BNS 85", "topic": "cruelty by husband or relatives" },
+    { "old": "IPC 302", "new": "BNS 103", "topic": "murder" },
+    { "old": "IPC 379", "new": "BNS 303", "topic": "theft" },
+    { "old": "IPC 506", "new": "BNS 351", "topic": "criminal intimidation" },
+    { "old": "IPC 323", "new": "BNS 115", "topic": "voluntarily causing hurt" },
+    { "old": "IPC 354", "new": "BNS 74", "topic": "outraging modesty" },
+    { "old": "IPC 120B", "new": "BNS 61", "topic": "criminal conspiracy" },
+    { "old": "Evidence Act 65B", "new": "BSA 63", "topic": "electronic records certificate" }
+  ]
+}
