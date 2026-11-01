@@ -1,9 +1,4 @@
-"""Runtime configuration.
-
-Keys come from server/.env by default. The web app's Settings panel can override
-them per request (headers on HTTP, the `start` message on WebSockets), so keys can
-be swapped without restarting the server or committing anything.
-"""
+"""Runtime configuration. All keys come from server/.env (or the host's env vars)."""
 
 import os
 from dataclasses import dataclass
@@ -15,13 +10,50 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 GNANI_BASE = os.getenv("GNANI_BASE", "https://api.vachana.ai")
 GNANI_WS_BASE = GNANI_BASE.replace("https://", "wss://").replace("http://", "ws://")
 
-# language code used by the app -> Gnani codes and default voices
-# REST accepts a list of locale hints; realtime takes exactly one locale.
+# The same 17 languages as Zuraksha. Gnani Prisma and Timbre cover ten Indian
+# locales; the rest are text-only (the LLM still reads and writes them).
+# stt: REST hint list; stream: exactly one locale for realtime; tts: Timbre locale.
+def _voice(loc: str) -> dict:
+    return {"stt": f"{loc},en-IN" if loc != "en-IN" else loc, "stream": loc, "tts": loc}
+
+
 LANGS = {
-    "hi": {"stt": "hi-IN,en-IN", "stream": "hi-IN", "tts": "hi-IN", "name": "हिंदी"},
-    "ta": {"stt": "ta-IN,en-IN", "stream": "ta-IN", "tts": "ta-IN", "name": "தமிழ்"},
-    "en": {"stt": "en-IN", "stream": "en-IN", "tts": "en-IN", "name": "English"},
+    "en": {"name": "English", "english": "English", **_voice("en-IN")},
+    "hi": {"name": "हिन्दी", "english": "Hindi", **_voice("hi-IN")},
+    "bn": {"name": "বাংলা", "english": "Bengali", **_voice("bn-IN")},
+    "mr": {"name": "मराठी", "english": "Marathi", **_voice("mr-IN")},
+    "te": {"name": "తెలుగు", "english": "Telugu", **_voice("te-IN")},
+    "ta": {"name": "தமிழ்", "english": "Tamil", **_voice("ta-IN")},
+    "gu": {"name": "ગુજરાતી", "english": "Gujarati", **_voice("gu-IN")},
+    "ur": {"name": "اردو", "english": "Urdu"},
+    "kn": {"name": "ಕನ್ನಡ", "english": "Kannada", **_voice("kn-IN")},
+    "or": {"name": "ଓଡ଼ିଆ", "english": "Odia"},
+    "ml": {"name": "മലയാളം", "english": "Malayalam", **_voice("ml-IN")},
+    "pa": {"name": "ਪੰਜਾਬੀ", "english": "Punjabi", **_voice("pa-IN")},
+    "as": {"name": "অসমীয়া", "english": "Assamese"},
+    "ks": {"name": "کٲشُر", "english": "Kashmiri"},
+    "sat": {"name": "ᱥᱟᱱᱛᱟᱲᱤ", "english": "Santali"},
+    "mni": {"name": "ꯃꯤꯇꯩꯂꯣꯟ", "english": "Meitei (Manipuri)"},
+    "sa": {"name": "संस्कृतम्", "english": "Sanskrit"},
 }
+
+
+def lang_info(lang: str) -> dict:
+    return LANGS.get(lang, LANGS["en"])
+
+
+def has_voice(lang: str) -> bool:
+    return "tts" in lang_info(lang)
+
+
+def speech_style(lang: str) -> str:
+    """How the LLM should write a spoken reply in this language."""
+    if lang == "en":
+        return "simple Indian English"
+    name = lang_info(lang)["english"]
+    return (f"simple spoken {name} in its native script; keep common English words "
+            "like FIR, notice, salary, UPI, bail, section in English")
+
 
 # "transcribe" keeps English words in Latin script and writes numbers as digits,
 # so "section 438 CrPC" stays matchable ("codemix" spells numbers out in words).
@@ -50,11 +82,12 @@ class Keys:
         return bool(self.llm_base and self.llm_model)
 
 
-def resolve_keys(overrides: dict | None = None) -> Keys:
-    o = {k.lower(): v for k, v in (overrides or {}).items() if v}
+def resolve_keys(_overrides: dict | None = None) -> Keys:
+    # Overrides from requests are ignored on purpose: a public server must not
+    # let callers point it at arbitrary LLM URLs.
     return Keys(
-        gnani_key=o.get("x-gnani-key") or os.getenv("GNANI_API_KEY", ""),
-        llm_base=(o.get("x-llm-base") or os.getenv("LLM_BASE_URL", "")).rstrip("/"),
-        llm_key=o.get("x-llm-key") or os.getenv("LLM_API_KEY", ""),
-        llm_model=o.get("x-llm-model") or os.getenv("LLM_MODEL", ""),
+        gnani_key=os.getenv("GNANI_API_KEY", ""),
+        llm_base=os.getenv("LLM_BASE_URL", "").rstrip("/"),
+        llm_key=os.getenv("LLM_API_KEY", ""),
+        llm_model=os.getenv("LLM_MODEL", ""),
     )
