@@ -144,7 +144,7 @@ async def turn(keys: Keys, lang: str, state: dict, text: str, history: list[dict
     nxt = _next_ask(issue_id, facts)
     if nxt:
         state["pending_key"] = nxt["key"]
-        reply = (result or {}).get("reply") or nxt["q"]
+        reply = (result or {}).get("reply") or nxt.get(f"q_{lang}") or nxt["q"]
         return {"reply": reply, "state": state}
 
     state["pending_key"] = None
