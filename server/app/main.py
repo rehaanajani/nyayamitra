@@ -233,12 +233,14 @@ class RoundReq(BaseModel):
     text: str
     history: list[dict] = []
     round: int = 1
+    stage: str = "both"       # both | opponent | bench
+    opponent: str = ""        # counsel's reply, for stage="bench"
 
 
 @app.post("/api/abhyas/round")
 async def abhyas_round(req: RoundReq, request: Request):
     try:
-        return await abhyas.round_turn(keys_from(request), req.case_id, req.side, req.lang, req.temperament, req.history, req.text, req.round)
+        return await abhyas.round_turn(keys_from(request), req.case_id, req.side, req.lang, req.temperament, req.history, req.text, req.round, req.stage, req.opponent)
     except ValueError as e:
         raise HTTPException(404, str(e))
 

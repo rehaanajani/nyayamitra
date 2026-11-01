@@ -308,8 +308,12 @@ def _heuristic_scores(text: str, case: dict, round_no: int) -> tuple[dict, dict]
 
 
 async def round_turn(keys: Keys, case_id: str, side: str | None, lang: str, temperament: str,
-                     history: list[dict], text: str, round_no: int) -> dict:
-    """One Supreme-style round: your submission, opposing counsel's reply, then the bench."""
+                     history: list[dict], text: str, round_no: int,
+                     stage: str = "both", opponent: str = "") -> dict:
+    """One Supreme-style round: your submission, opposing counsel's reply, then the bench.
+
+    stage="opponent" returns counsel's reply alone so it can be spoken at once;
+    stage="bench" then scores it (pass the reply as `opponent`) while counsel talks."""
     case = get_case(case_id, side)
     if not case:
         raise ValueError("unknown case")
@@ -320,7 +324,12 @@ async def round_turn(keys: Keys, case_id: str, side: str | None, lang: str, temp
             return {"correction": {"speaker": "judge", "text": correction(hits, lang), "flags": [{"type": "old_citation", **h} for h in hits]}}
 
     hist = history + [{"role": "user", "text": text}]
+    if stage == "bench":
+        hist = hist + [{"role": "opponent", "text": opponent}]
+        return {"bench": await bench_remark(keys, case, lang, temperament, hist, text, opponent, round_no)}
     opp = await bench_turn_as(keys, case, lang, temperament, hist, "opponent", round_no)
+    if stage == "opponent":
+        return {"opponent": {"speaker": "opponent", "text": opp}}
     hist = hist + [{"role": "opponent", "text": opp}]
     bench = await bench_remark(keys, case, lang, temperament, hist, text, opp, round_no)
     return {"opponent": {"speaker": "opponent", "text": opp}, "bench": bench}
@@ -336,12 +345,13 @@ async def bench_turn_as(keys: Keys, case: dict, lang: str, temperament: str, his
 Matter: {case['title']}. The user is: {case['you_are']}.
 Facts: {json.dumps(case['facts'], ensure_ascii=False)}
 Your side's strongest points: {json.dumps(their, ensure_ascii=False)}
-Rebut the user's latest submission directly in 2-3 spoken sentences, then add one fresh point for your side. Address the bench as "My Lord" (or "My Lords" in the Supreme Court). Speak in {speech_style(lang)}. {law_rule} No lists, no markdown, never invent case names."""
+Rebut the user's latest submission in at most 2 short spoken sentences, including one fresh point for your side. Address the bench as "My Lord" (or "My Lords" in the Supreme Court). Speak in {speech_style(lang)}. {law_rule} No lists, no markdown, never invent case names."""
     msgs = [{"role": "system", "content": system}]
     for h in history[-8:]:
         msgs.append({"role": "user" if h["role"] == "user" else "assistant", "content": h["text"]})
     try:
-        out = await llm.chat(keys, msgs, max_tokens=180, temperature=0.6)
+        # kept short, like Supreme: a quick reply feels live, a long one feels like a wait
+        out = await llm.chat(keys, msgs, max_tokens=110, temperature=0.6)
         if out:
             return out
     except Exception:
