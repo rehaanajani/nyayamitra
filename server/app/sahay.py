@@ -9,7 +9,7 @@ import json
 import os
 
 from . import llm
-from .config import LANGS, Keys
+from .config import Keys, speech_style
 
 with open(os.path.join(os.path.dirname(__file__), "knowledge", "routes.json"), encoding="utf-8") as f:
     ROUTES = json.load(f)
@@ -17,16 +17,22 @@ with open(os.path.join(os.path.dirname(__file__), "knowledge", "routes.json"), e
 ISSUES = {i["id"]: i for i in ROUTES["issues"]}
 HELPLINES = {h["id"]: h for h in ROUTES["helplines"]}
 
-LANG_STYLE = {
-    "hi": "simple spoken Hindi in Devanagari script; keep common English words like FIR, notice, salary, UPI in English",
-    "ta": "simple spoken Tamil in Tamil script; keep common English words like FIR, notice, salary, UPI in English",
-    "en": "simple Indian English",
-}
-
 GREETING = {
+    # beyond hi/ta/en these need a native speaker's review
     "hi": "नमस्ते, मैं सहाय हूँ। आराम से बताइए, आपके साथ क्या हुआ है?",
     "ta": "வணக்கம், நான் சகாய். என்ன நடந்தது என்று நிதானமாகச் சொல்லுங்கள்.",
     "en": "Hello, I'm Sahay. Take your time and tell me what happened.",
+    "bn": "নমস্কার, আমি সহায়। কী হয়েছে, ধীরে ধীরে বলুন।",
+    "mr": "नमस्कार, मी सहाय. काय झालं ते शांतपणे सांगा.",
+    "te": "నమస్కారం, నేను సహాయ్. ఏం జరిగిందో నెమ్మదిగా చెప్పండి.",
+    "gu": "નમસ્તે, હું સહાય છું. શું થયું તે શાંતિથી કહો.",
+    "kn": "ನಮಸ್ಕಾರ, ನಾನು ಸಹಾಯ್. ಏನಾಯಿತು ಎಂದು ನಿಧಾನವಾಗಿ ಹೇಳಿ.",
+    "ml": "നമസ്കാരം, ഞാൻ സഹായ് ആണ്. എന്താണ് സംഭവിച്ചതെന്ന് സാവധാനം പറയൂ.",
+    "pa": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ਮੈਂ ਸਹਾਇ ਹਾਂ। ਆਰਾਮ ਨਾਲ ਦੱਸੋ ਕੀ ਹੋਇਆ।",
+    "ur": "آداب، میں سہائے ہوں۔ آرام سے بتائیے، کیا ہوا؟",
+    "or": "ନମସ୍କାର, ମୁଁ ସହାୟ। କ'ଣ ହେଲା ଧୀରେ କୁହନ୍ତୁ।",
+    "as": "নমস্কাৰ, মই সহায়। কি হ'ল লাহে লাহে কওক।",
+    "sa": "नमस्ते, अहं सहायः। किम् अभवत् इति शनैः वदतु।",
 }
 
 URGENT = {
@@ -36,8 +42,12 @@ URGENT = {
 }
 
 
+def _pick(options: dict, lang: str) -> str:
+    return options.get(lang) or options["en"]
+
+
 def greeting(lang: str) -> str:
-    return GREETING.get(lang, GREETING["en"])
+    return _pick(GREETING, lang)
 
 
 def _is_danger(text: str) -> bool:
@@ -124,11 +134,11 @@ async def turn(keys: Keys, lang: str, state: dict, text: str, history: list[dict
     state.update({"issue_id": issue_id, "facts": facts})
 
     if not issue_id:
-        reply = (result or {}).get("reply") or {
+        reply = (result or {}).get("reply") or _pick({
             "hi": "समझ रही हूँ। थोड़ा और बताइए: पैसे का मामला है, पुलिस का, मकान का, नौकरी का या किसी company का?",
             "ta": "புரிகிறது. கொஞ்சம் கூடச் சொல்லுங்கள்: பணம், போலீஸ், வீடு, வேலை அல்லது ஏதாவது company பற்றியதா?",
             "en": "I understand. Tell me a little more: is it about money, police, a house, a job, or a company?",
-        }[lang if lang in LANGS else "en"]
+        }, lang)
         return {"reply": reply, "state": state}
 
     nxt = _next_ask(issue_id, facts)
@@ -140,11 +150,11 @@ async def turn(keys: Keys, lang: str, state: dict, text: str, history: list[dict
     state["pending_key"] = None
     state["done"] = True
     card = build_card(issue_id, facts)
-    reply = (result or {}).get("reply") or {
+    reply = (result or {}).get("reply") or _pick({
         "hi": "धन्यवाद। मैंने आपका रास्ता स्क्रीन पर रख दिया है: कहाँ जाना है, क्या ले जाना है, और समय सीमा। मुफ़्त वकील के लिए 15100 पर कॉल कर सकते हैं।",
         "ta": "நன்றி. எங்கு செல்ல வேண்டும், என்ன கொண்டு செல்ல வேண்டும், கால வரம்பு என்ன என்பதை திரையில் வைத்துள்ளேன். இலவச வழக்கறிஞருக்கு 15100 அழையுங்கள்.",
         "en": "Thank you. Your path is on the screen: where to go, what to carry and the deadline. For a free lawyer, call 15100.",
-    }[lang if lang in LANGS else "en"]
+    }, lang)
     return {"reply": reply, "state": state, "card": card}
 
 
@@ -156,7 +166,7 @@ async def _llm_turn(keys: Keys, lang: str, issue_id: str | None, facts: dict, te
     else:
         asks = []
     missing = [a for a in asks if not facts.get(a["key"])]
-    style = LANG_STYLE.get(lang, LANG_STYLE["en"])
+    style = speech_style(lang)
     system = f"""You are Sahay, a calm legal-help intake assistant on a voice call in India. Callers are often scared, speak in mixed languages, and the audio may be noisy.
 Your job each turn: (1) identify which problem this is, (2) extract facts from what the caller said, (3) write ONE short spoken reply.
 
