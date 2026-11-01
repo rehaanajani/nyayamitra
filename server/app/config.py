@@ -16,11 +16,16 @@ GNANI_BASE = os.getenv("GNANI_BASE", "https://api.vachana.ai")
 GNANI_WS_BASE = GNANI_BASE.replace("https://", "wss://").replace("http://", "ws://")
 
 # language code used by the app -> Gnani codes and default voices
+# REST accepts a list of locale hints; realtime takes exactly one locale.
 LANGS = {
-    "hi": {"stt": "hi-IN,en-IN", "tts": "hi-IN", "name": "हिंदी"},
-    "ta": {"stt": "ta-IN,en-IN", "tts": "ta-IN", "name": "தமிழ்"},
-    "en": {"stt": "en-IN", "tts": "en-IN", "name": "English"},
+    "hi": {"stt": "hi-IN,en-IN", "stream": "hi-IN", "tts": "hi-IN", "name": "हिंदी"},
+    "ta": {"stt": "ta-IN,en-IN", "stream": "ta-IN", "tts": "ta-IN", "name": "தமிழ்"},
+    "en": {"stt": "en-IN", "stream": "en-IN", "tts": "en-IN", "name": "English"},
 }
+
+# "transcribe" keeps English words in Latin script and writes numbers as digits,
+# so "section 438 CrPC" stays matchable ("codemix" spells numbers out in words).
+STT_FORMAT = "transcribe"
 
 VOICES = {
     "sahay": os.getenv("VOICE_SAHAY", "Lakshmi"),
