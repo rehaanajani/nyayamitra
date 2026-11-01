@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* Palette and type follow gnani.ai: off-white canvas, ink text, Gambarino display,
+   Inter body, pastel cyan / peach / lavender light, black pill buttons. */
+@theme {
+  --color-canvas: #f9fafb;
+  --color-cream: #fcf7f2;
+  --color-ink: #0b0b0f;
+  --color-ink-2: #344054;
+  --color-muted: #667085;
+  --color-line: #e4e7ec;
+  --color-cyan: #a2ebfc;
+  --color-peach: #ffd3b7;
+  --color-lav: #e2e0fb;
+  --color-violet: #8981f1;
+  --color-violet-deep: #5b50e6;
+  --color-royal: #4169e1;
+  --color-go: #18ad3a;
+  --color-warn: #e8590c;
+
+  --font-display: "Gambarino", "Tiro Devanagari Sanskrit", Georgia, serif;
+  --font-deva: "Tiro Devanagari Sanskrit", "Noto Sans Devanagari", serif;
+  --font-sans: "Inter", "Noto Sans Devanagari", "Noto Sans Tamil", system-ui, sans-serif;
+}
+
+html, body, #root { min-height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; }
+.font-deva { font-family: var(--font-deva); }
+
+/* pastel light wash used across hero and orbs */
+.wash {
+  background:
+    radial-gradient(60% 50% at 20% 30%, rgba(162, 235, 252, .75), transparent 70%),
+    radial-gradient(55% 55% at 80% 25%, rgba(226, 224, 251, .9), transparent 70%),
+    radial-gradient(60% 60% at 55% 85%, rgba(255, 211, 183, .85), transparent 70%),
+    var(--color-canvas);
+}
+
+.rays {
+  background: repeating-conic-gradient(from 0deg at 50% 115%,
+    rgba(255, 255, 255, .55) 0deg 2.2deg, rgba(255, 255, 255, 0) 2.2deg 7deg);
+  mask-image: radial-gradient(80% 90% at 50% 100%, #000 30%, transparent 75%);
+  animation: rays-spin 90s linear infinite;
+}
+@keyframes rays-spin { to { transform: rotate(360deg); } }
+
+.grain::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .18; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+}
+
+.card {
+  background: rgba(255, 255, 255, .78);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--color-line);
+  border-radius: 24px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 12px 32px -12px rgba(16, 24, 40, .12);
+}
+
+.pill {
+  display: inline-flex; align-items: center; gap: .5rem;
+  border-radius: 999px; padding: .7rem 1.25rem; font-weight: 500; font-size: .95rem;
+  transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
+}
+.pill:active { transform: scale(.97); }
+.pill-dark { background: var(--color-ink); color: white; }
+.pill-dark:hover { background: #26262d; box-shadow: 0 8px 24px -8px rgba(11, 11, 15, .5); }
+.pill-light { background: white; color: var(--color-ink); border: 1px solid var(--color-line); }
+.pill-light:hover { border-color: #c9ced8; }
+.pill:disabled { opacity: .45; pointer-events: none; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  border-radius: 999px; padding: .25rem .7rem; font-size: .78rem; font-weight: 500;
+  border: 1px solid var(--color-line); background: white; color: var(--color-ink-2);
+}
+
+.scroll-soft::-webkit-scrollbar { width: 8px; }
+.scroll-soft::-webkit-scrollbar-thumb { background: #d0d5dd; border-radius: 99px; }
+
+@media print {
+  body * { visibility: hidden; }
+  .printable, .printable * { visibility: visible; }
+  .printable { position: absolute; inset: 0; padding: 48px; background: white; box-shadow: none; border: 0; }
+}
