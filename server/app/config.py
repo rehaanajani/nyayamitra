@@ -73,6 +73,10 @@ class Keys:
     llm_key: str
     llm_model: str
     hf_token: str = ""
+    # backup LLM (e.g. Gemini) used only when Evon is unreachable
+    fb_base: str = ""
+    fb_key: str = ""
+    fb_model: str = ""
 
     @property
     def has_gnani(self) -> bool:
@@ -80,13 +84,15 @@ class Keys:
 
     @property
     def has_llm(self) -> bool:
-        return bool(self.llm_base and self.llm_model) or bool(self.hf_token)
+        return bool(self.llm_base and self.llm_model) or bool(self.hf_token) or bool(self.fb_base and self.fb_model)
 
     @property
     def model_label(self) -> str:
         if self.llm_base and self.llm_model:
             return self.llm_model
-        return "evon (Hugging Face Space)" if self.hf_token else ""
+        if self.hf_token:
+            return "evon (Hugging Face Space)"
+        return self.fb_model
 
 
 def resolve_keys(_overrides: dict | None = None) -> Keys:
@@ -98,4 +104,7 @@ def resolve_keys(_overrides: dict | None = None) -> Keys:
         llm_key=os.getenv("LLM_API_KEY", ""),
         llm_model=os.getenv("LLM_MODEL", ""),
         hf_token=os.getenv("HF_TOKEN", ""),
+        fb_base=os.getenv("BACKUP_LLM_BASE_URL", "").rstrip("/"),
+        fb_key=os.getenv("BACKUP_LLM_API_KEY", ""),
+        fb_model=os.getenv("BACKUP_LLM_MODEL", ""),
     )
