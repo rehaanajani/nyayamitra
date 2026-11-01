@@ -49,8 +49,10 @@ ROUNDS = 5  # like the original Supreme: five submissions, then the verdict
 
 def get_case(case_id: str, side: str | None = None) -> dict | None:
     case = CASES.get(case_id) or CUSTOM_CASES.get(case_id)
-    if not case or "sides" not in case:
-        return case
+    if not case:
+        return None
+    if "sides" not in case:
+        return case | {"their_args": case.get("opponent_points", [])}
     # landmark cases: the user argues one side, the AI argues the other
     mine = side if side in ("petitioner", "respondent") else "petitioner"
     theirs = "respondent" if mine == "petitioner" else "petitioner"
@@ -283,3 +285,98 @@ Replace real names of private people with invented ones."""},
     }
     CUSTOM_CASES[case["id"]] = case
     return _public(case)
+
+
+AXES = ("law", "facts", "bench_handling", "delivery")
+
+
+def _heuristic_scores(text: str, case: dict, round_no: int) -> tuple[dict, dict]:
+    """Rough scores when no model is available: length, citations and use of the record."""
+    t = text.lower()
+    words = len(text.split())
+    cites = len(re.findall(r"\b(section|article|act|bns|bnss|bsa|ni act|v\.|vs\.?)\b", t))
+    record = sum(1 for f in case.get("facts", []) + case.get("my_args", []) for w in re.findall(r"[a-z]{6,}", f.lower())[:4] if w in t)
+    base = 38 + min(30, words // 3)
+    you = {
+        "law": min(95, base + 6 * cites),
+        "facts": min(95, base + 4 * record),
+        "bench_handling": min(95, base + (8 if "?" not in text and words > 12 else 0)),
+        "delivery": min(95, base + (6 if 15 <= words <= 90 else -6)),
+    }
+    them = {k: 62 + ((round_no * 7 + i * 5) % 14) for i, k in enumerate(AXES)}
+    return you, them
+
+
+async def round_turn(keys: Keys, case_id: str, side: str | None, lang: str, temperament: str,
+                     history: list[dict], text: str, round_no: int) -> dict:
+    """One Supreme-style round: your submission, opposing counsel's reply, then the bench."""
+    case = get_case(case_id, side)
+    if not case:
+        raise ValueError("unknown case")
+    if not case.get("historic"):
+        hits = find_old_citations(text)
+        if hits:
+            # the bench stops you; the round does not count until you restate it
+            return {"correction": {"speaker": "judge", "text": correction(hits, lang), "flags": [{"type": "old_citation", **h} for h in hits]}}
+
+    hist = history + [{"role": "user", "text": text}]
+    opp = await bench_turn_as(keys, case, lang, temperament, hist, "opponent", round_no)
+    hist = hist + [{"role": "opponent", "text": opp}]
+    bench = await bench_remark(keys, case, lang, temperament, hist, text, opp, round_no)
+    return {"opponent": {"speaker": "opponent", "text": opp}, "bench": bench}
+
+
+async def bench_turn_as(keys: Keys, case: dict, lang: str, temperament: str, history: list[dict],
+                        speaker: str, round_no: int) -> str:
+    their = case.get("their_args") or []
+    historic = case.get("historic", False)
+    law_rule = ("This is a historic case: argue it under the law as it stood before judgment. Stay neutral and respectful about religion, community and identity."
+                if historic else "Use only BNS, BNSS and BSA section numbers.")
+    system = f"""You are {case['opponent']} in {case['court']}, arguing against the user in round {round_no} of {ROUNDS}.
+Matter: {case['title']}. The user is: {case['you_are']}.
+Facts: {json.dumps(case['facts'], ensure_ascii=False)}
+Your side's strongest points: {json.dumps(their, ensure_ascii=False)}
+Rebut the user's latest submission directly in 2-3 spoken sentences, then add one fresh point for your side. Address the bench as "My Lord" (or "My Lords" in the Supreme Court). Speak in {speech_style(lang)}. {law_rule} No lists, no markdown, never invent case names."""
+    msgs = [{"role": "system", "content": system}]
+    for h in history[-8:]:
+        msgs.append({"role": "user" if h["role"] == "user" else "assistant", "content": h["text"]})
+    try:
+        out = await llm.chat(keys, msgs, max_tokens=180, temperature=0.6)
+        if out:
+            return out
+    except Exception:
+        pass
+    if their:
+        arg = their[(round_no - 1) % len(their)]
+        lead = "My Lords" if "sides" in case else "My Lord"
+        return f"{lead}, with respect to my learned friend: {arg}"
+    return "My Lord, my learned friend has not shown anything on record to support that."
+
+
+async def bench_remark(keys: Keys, case: dict, lang: str, temperament: str, history: list[dict],
+                       you_text: str, opp_text: str, round_no: int) -> dict:
+    focus = case["bench_focus"]
+    try:
+        out = await llm.chat(keys, [
+            {"role": "system", "content": f"You are the presiding judge in {case['court']} ({temperament} temperament). Score this round fairly and say one short remark to counsel. Return ONLY JSON."},
+            {"role": "user", "content": f"""Matter: {case['title']}. Round {round_no} of {ROUNDS}.
+The user ({case['you_are']}) said: {you_text}
+Opposing counsel ({case['opponent']}) said: {opp_text}
+Points the bench cares about: {json.dumps(focus, ensure_ascii=False)}
+Score both 0-100 on law, facts, bench_handling, delivery. The remark: one or two spoken sentences in {speech_style(lang)}, ending with the question the bench wants answered next.
+JSON: {{"remark": "...", "you": {{"law": n, "facts": n, "bench_handling": n, "delivery": n}}, "them": {{"law": n, "facts": n, "bench_handling": n, "delivery": n}}}}"""},
+        ], max_tokens=320, temperature=0.3, want_json=True)
+        data = llm.parse_json(out) or {}
+        you, them = data.get("you"), data.get("them")
+        if isinstance(you, dict) and isinstance(them, dict) and data.get("remark"):
+            clean = lambda d: {k: max(0, min(100, int(d.get(k, 50)))) for k in AXES}
+            return {"speaker": "judge", "text": str(data["remark"]), "scores": {"you": clean(you), "them": clean(them)}}
+    except Exception:
+        pass
+    you, them = _heuristic_scores(you_text, case, round_no)
+    q = focus[round_no % len(focus)].rstrip("?")
+    remark = {
+        "hi": f"ठीक है। अगले round में यह साफ़ कीजिए: {q}?",
+        "ta": f"சரி. அடுத்த round-ல் இதைத் தெளிவுபடுத்துங்கள்: {q}?",
+    }.get(lang) or f"Noted. In the next round, address this: {q}?"
+    return {"speaker": "judge", "text": remark, "scores": {"you": you, "them": them}}
