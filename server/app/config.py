@@ -72,6 +72,7 @@ class Keys:
     llm_base: str
     llm_key: str
     llm_model: str
+    hf_token: str = ""
 
     @property
     def has_gnani(self) -> bool:
@@ -79,7 +80,13 @@ class Keys:
 
     @property
     def has_llm(self) -> bool:
-        return bool(self.llm_base and self.llm_model)
+        return bool(self.llm_base and self.llm_model) or bool(self.hf_token)
+
+    @property
+    def model_label(self) -> str:
+        if self.llm_base and self.llm_model:
+            return self.llm_model
+        return "evon (Hugging Face Space)" if self.hf_token else ""
 
 
 def resolve_keys(_overrides: dict | None = None) -> Keys:
@@ -90,4 +97,5 @@ def resolve_keys(_overrides: dict | None = None) -> Keys:
         llm_base=os.getenv("LLM_BASE_URL", "").rstrip("/"),
         llm_key=os.getenv("LLM_API_KEY", ""),
         llm_model=os.getenv("LLM_MODEL", ""),
+        hf_token=os.getenv("HF_TOKEN", ""),
     )

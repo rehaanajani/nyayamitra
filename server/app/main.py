@@ -28,8 +28,8 @@ async def status(request: Request):
     return {
         "gnani": k.has_gnani,
         "llm": k.has_llm,
-        "llm_model": k.llm_model,
-        "evon": "evon" in k.llm_model.lower(),
+        "llm_model": k.model_label,
+        "evon": "evon" in k.model_label.lower(),
         "languages": [{"code": c, "name": v["name"], "english": v["english"], "voice": "tts" in v} for c, v in LANGS.items()],
     }
 
@@ -259,6 +259,8 @@ async def abhyas_custom(req: CustomCase, request: Request):
         raise HTTPException(400, "An LLM is needed to build a case from text")
     except ValueError as e:
         raise HTTPException(422, str(e))
+    except Exception:
+        raise HTTPException(503, "Evon is busy right now. Try again in a minute.")
 
 
 # ---------- web app (production build) ----------
