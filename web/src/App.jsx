@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { ArrowUpRight } from 'lucide-react'
 import { api } from './lib/api'
 import Footer from './components/Footer'
+import LanguageMenu from './components/LanguageMenu'
 import Home from './pages/Home'
 import Sahay from './pages/Sahay'
 import Abhyas from './pages/Abhyas'
@@ -68,7 +69,8 @@ export default function App() {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-2 md:ml-0">
+          <div className="ml-auto flex items-center gap-1 md:ml-0">
+            <LanguageMenu />
             <a href="https://github.com/rehaanajani/nyayamitra" target="_blank" rel="noreferrer" className="hidden rounded-full px-4 py-2 text-sm text-ink-2 transition hover:bg-canvas hover:text-ink sm:inline-flex sm:items-center sm:gap-1">
               GitHub <ArrowUpRight size={14} />
             </a>
