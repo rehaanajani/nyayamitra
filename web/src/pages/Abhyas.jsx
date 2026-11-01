@@ -252,7 +252,8 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
     if (phaseRef.current !== 'you') return
     setYouNow(userText); setOppNow(''); setPhase('opponent')
     try {
-      const r = await api('/api/abhyas/round', { case_id: matter.id, side, lang, temperament, text: userText, history: history(), round })
+      const req = { case_id: matter.id, side, lang, temperament, text: userText, history: history(), round }
+      const r = await api('/api/abhyas/round', { ...req, stage: 'opponent' })
       if (r.correction) {
         setBench({ text: r.correction.text, scores: bench.scores, flags: r.correction.flags })
         setPhase('you')
@@ -260,8 +261,11 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
         return
       }
       setOppNow(r.opponent.text)
+      // the bench weighs the round while counsel is still speaking
+      const benchP = api('/api/abhyas/round', { ...req, stage: 'bench', opponent: r.opponent.text })
       await say(r.opponent.text, 'opponent')
       setPhase('bench')
+      r.bench = (await benchP).bench
       setBench({ text: r.bench.text, scores: r.bench.scores, flags: [] })
       const done = [...roundsRef.current, { you: userText, opponent: r.opponent.text, bench: r.bench }]
       setRounds(done)
