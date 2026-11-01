@@ -19,12 +19,23 @@ const COLUMNS = [
 export default function Footer() {
   return (
     <footer className="px-3 pb-3 pt-44 sm:px-5 sm:pb-5">
-      <div className="relative mx-auto max-w-[1360px] rounded-[32px] bg-ink px-6 pb-8 pt-44 text-white sm:rounded-[44px] sm:px-12 sm:pt-52">
+      <div className="relative mx-auto max-w-[1360px] rounded-[32px] bg-ink px-6 pb-8 pt-[20rem] text-white sm:rounded-[44px] sm:px-12 sm:pt-[22rem]">
         <div className="absolute inset-x-4 -top-32 mx-auto max-w-4xl overflow-hidden rounded-[32px] wash shadow-[0_30px_60px_-20px_rgba(11,11,15,.45)] sm:inset-x-10 sm:-top-36 sm:rounded-[44px]">
           <div className="rays absolute -inset-[40%] opacity-70" />
-          <div className="relative flex h-60 flex-col items-center justify-center px-6 text-center sm:h-72">
+          <div className="relative flex h-[27rem] flex-col items-center px-6 pt-9 text-center sm:h-[30rem] sm:pt-11">
             <div className="font-deva text-4xl text-ink sm:text-6xl">न्याय सबका है।</div>
             <div className="font-display mt-2 text-lg text-ink-2 sm:text-2xl">Justice should speak your language.</div>
+          </div>
+          {/* Mitra, the mascot, rises from the card's lower edge, centred */}
+          <div className="absolute bottom-0 left-1/2 w-[250px] -translate-x-1/2 sm:w-[340px]">
+            <motion.div
+              className="absolute -right-24 top-10 whitespace-nowrap rounded-full rounded-bl-sm bg-ink px-4 py-2 text-sm text-white shadow-lg sm:-right-36 sm:top-14 sm:text-base"
+              animate={{ y: [0, -4, 0] }}
+              transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+            >
+              <span className="font-deva">नमस्ते! मैं मित्र हूँ।</span>
+            </motion.div>
+            <img src="/brand/mitra.webp" alt="Mitra, a friendly lion in an advocate's coat and bands, holding the Constitution of India and waving" className="relative block w-full drop-shadow-[0_18px_30px_rgba(11,11,15,.25)]" />
           </div>
         </div>
 
