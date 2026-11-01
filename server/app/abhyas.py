@@ -11,7 +11,7 @@ import re
 import uuid
 
 from . import llm
-from .config import Keys, speech_style
+from .config import Keys, lang_info, speech_style
 from .hindi import to_digits
 
 _dir = os.path.join(os.path.dirname(__file__), "knowledge")
@@ -144,16 +144,17 @@ Points the bench cares about: {json.dumps(case['bench_focus'], ensure_ascii=Fals
 Speak in {speech_style(lang)}. If that language is not Hindi, Tamil or English, still speak it the way a local district court would.
 Reply with ONE or TWO short spoken sentences, like a real Indian district court: no greetings, no lists, no markdown.
 {"Ask exactly one pointed question that tests the user's last submission." if speaker == "judge" else "End by pointing at the gap in their argument."}
-Use only BNS, BNSS and BSA section numbers (the IPC, CrPC and Evidence Act are repealed). Never invent case names; if you need authority, ask the user for it."""
+Address the advocate respectfully as "counsel" (in Hindi use आप, never तुम or तू). Use only BNS, BNSS and BSA section numbers (the IPC, CrPC and Evidence Act are repealed). Never invent case names; if you need authority, ask the user for it."""
     msgs = [{"role": "system", "content": system}]
     for h in history[-10:]:
         msgs.append({"role": "user" if h["role"] == "user" else "assistant", "content": h["text"]})
-    msgs.append({"role": "user", "content": text})
+    script = "English" if lang == "en" else f"{lang_info(lang)['english']} in its own script, with English legal terms"
+    msgs.append({"role": "user", "content": f"{text}\n\n[Reply in {script}. One or two sentences. Call the advocate 'counsel'.]"})
     try:
         out = await llm.chat(keys, msgs, max_tokens=160, temperature=0.6)
         if out:
             return {"speaker": speaker, "text": out, "flags": []}
-    except llm.NoLLM:
+    except Exception:  # no model, quota spent or timeout: keep the hearing going
         pass
     return _fallback_bench(case, lang, user_turns)
 
