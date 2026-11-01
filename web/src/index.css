@@ -57,6 +57,8 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
 }
 
+/* in the components layer so Tailwind utilities (md:hidden, !py-2, ...) can override */
+@layer components {
 .card {
   background: rgba(255, 255, 255, .78);
   backdrop-filter: blur(14px);
@@ -81,6 +83,7 @@ body {
   display: inline-flex; align-items: center; gap: .35rem;
   border-radius: 999px; padding: .25rem .7rem; font-size: .78rem; font-weight: 500;
   border: 1px solid var(--color-line); background: white; color: var(--color-ink-2);
+}
 }
 
 .scroll-soft::-webkit-scrollbar { width: 8px; }
