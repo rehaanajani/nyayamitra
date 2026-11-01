@@ -1,6 +1,6 @@
 """OpenAI-compatible chat client.
 
-Point it at Gnani Evon served by vLLM/SGLang (`vllm serve gnani/gnani-evon-v3.3 ...`),
+Point it at Gnani Evon served by vLLM/SGLang (`vllm serve gnani/gnani-evon-v3.3-30B-A3B --served-model-name evon ...`),
 or any OpenAI-compatible provider while Evon is not hosted yet.
 """
 
