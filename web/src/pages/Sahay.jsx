@@ -13,6 +13,12 @@ const EXAMPLES = {
   en: ['My salary hasn\'t been paid for 3 months', 'Landlord won\'t return my deposit', 'I lost ₹20,000 to a UPI scam call', 'Police refused to file my FIR'],
 }
 
+const ORB_LABEL = {
+  hi: ['बोल रही हूँ', 'सुन रही हूँ'],
+  ta: ['பேசுகிறேன்', 'கேட்கிறேன்'],
+  en: ['Speaking', 'Listening'],
+}
+
 export default function Sahay({ status, openSettings }) {
   const [lang, setLang] = useState('hi')
   const [items, setItems] = useState([])
@@ -87,7 +93,7 @@ export default function Sahay({ status, openSettings }) {
 
           <div className="mt-10 grid items-start gap-8 lg:grid-cols-[320px_1fr]">
             <div className="flex flex-col items-center gap-5">
-              <Orb level={orbLevel} active={voice.listening || voice.speaking} size={240} label={voice.speaking ? 'बोल रही हूँ' : voice.listening ? 'सुन रही हूँ' : ''} />
+              <Orb level={orbLevel} active={voice.listening || voice.speaking} size={240} label={voice.speaking ? ORB_LABEL[lang][0] : voice.listening ? ORB_LABEL[lang][1] : ''} />
               {!status.gnani && (
                 <button onClick={openSettings} className="chip !py-1.5 hover:border-ink">Add a Gnani key to talk by voice</button>
               )}
