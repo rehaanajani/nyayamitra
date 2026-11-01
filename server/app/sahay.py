@@ -160,10 +160,9 @@ async def turn(keys: Keys, lang: str, state: dict, text: str, history: list[dict
 
 async def _llm_turn(keys: Keys, lang: str, issue_id: str | None, facts: dict, text: str,
                     history: list[dict]) -> dict | None:
-    if not keys.llm_base:
-        # On the free Hugging Face Space the daily GPU quota is tiny, so it's kept
-        # for the courtroom; intake runs on the vetted rules unless a full Evon
-        # server (LLM_BASE_URL) is configured.
+    if not (keys.llm_base or keys.fb_base):
+        # The free Space alone is too scarce for intake; with Kaggle Evon or the
+        # Gemini backup configured, the conversation runs on the model.
         raise llm.NoLLM()
     issue_list = "\n".join(f'- {i["id"]}: {i["title"]}' for i in ROUTES["issues"])
     if issue_id:
