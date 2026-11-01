@@ -1,9 +1,10 @@
 """Chat client for Gnani Evon.
 
 Two ways to reach it, first match wins:
-1. LLM_BASE_URL: any OpenAI-compatible server, e.g. Evon on vLLM
-   (`vllm serve gnani/gnani-evon-v3.3-30B-A3B --served-model-name evon ...`).
+1. LLM_BASE_URL: any OpenAI-compatible server running Evon, e.g. llama.cpp
+   on Kaggle's free T4s (deploy/kaggle-evon.ipynb) or vLLM on a rented GPU.
 2. HF_TOKEN: Evon on the free Hugging Face Space (see evon_space.py).
+If the first is unreachable (a Kaggle session ended), the second takes over.
 """
 
 import json
@@ -23,9 +24,18 @@ async def chat(keys: Keys, messages: list[dict], *, max_tokens: int = 300,
                temperature: float = 0.5, want_json: bool = False) -> str:
     if not keys.has_llm:
         raise NoLLM()
-    if not (keys.llm_base and keys.llm_model):
-        out = await evon_space.chat(keys.hf_token, messages, max_tokens)
-        return re.sub(r"<think>.*?</think>", "", out, flags=re.S).strip()
+    if keys.llm_base and keys.llm_model:
+        try:
+            return await _openai_chat(keys, messages, max_tokens, temperature, want_json)
+        except (httpx.HTTPError, RuntimeError):
+            if not keys.hf_token:
+                raise
+    out = await evon_space.chat(keys.hf_token, messages, max_tokens)
+    return re.sub(r"<think>.*?</think>", "", out, flags=re.S).strip()
+
+
+async def _openai_chat(keys: Keys, messages: list[dict], max_tokens: int,
+                       temperature: float, want_json: bool) -> str:
     body: dict = {
         "model": keys.llm_model,
         "messages": messages,
