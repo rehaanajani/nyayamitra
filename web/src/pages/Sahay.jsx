@@ -3,9 +3,8 @@ import { motion } from 'motion/react'
 import { Mic, MicOff, RotateCcw, Send } from 'lucide-react'
 import { api } from '../lib/api'
 import useVoice from '../lib/useVoice'
-import { LightField, Reveal } from '../components/ui'
-import Mitra from '../components/Mitra'
-import { motion as m } from 'motion/react'
+import { LightField, Orb, Reveal } from '../components/ui'
+import Scene from '../components/Scene'
 import LanguageMenu from '../components/LanguageMenu'
 import { langInfo, useLang } from '../lib/lang'
 import Transcript from '../components/Transcript'
@@ -98,20 +97,7 @@ export default function Sahay({ status }) {
 
           <div className="mt-10 grid items-start gap-8 lg:grid-cols-[320px_1fr]">
             <div className="flex flex-col items-center gap-5">
-              <div className="relative grid w-[260px] place-items-center pt-4">
-                <m.div
-                  className="absolute bottom-6 h-44 w-44 rounded-full blur-2xl"
-                  style={{ background: 'conic-gradient(from 90deg, #a2ebfc, #e2e0fb, #ffd3b7, #bdb9f7, #a2ebfc)' }}
-                  animate={{ scale: 1 + orbLevel * 0.5, opacity: voice.listening || voice.speaking ? 0.9 : 0.55 }}
-                  transition={{ duration: 0.15 }}
-                />
-                <div className="relative" style={{ WebkitMaskImage: 'linear-gradient(to bottom, #000 72%, transparent 100%)', maskImage: 'linear-gradient(to bottom, #000 72%, transparent 100%)' }}>
-                  <Mitra width={230} talking={voice.speaking} level={voice.outLevel} listening={voice.listening && !voice.speaking} />
-                </div>
-                <div className="relative -mt-1 h-5 text-sm text-muted">
-                  {voice.speaking ? (ORB_LABEL[lang] || ORB_LABEL.en)[0] : voice.listening ? (ORB_LABEL[lang] || ORB_LABEL.en)[1] : ''}
-                </div>
-              </div>
+              <Orb level={orbLevel} active={voice.listening || voice.speaking} size={240} label={voice.speaking ? (ORB_LABEL[lang] || ORB_LABEL.en)[0] : voice.listening ? (ORB_LABEL[lang] || ORB_LABEL.en)[1] : ''} />
               {!canTalk && (
                 <span className="chip !py-1.5">{status.gnani ? `Voice isn't available in ${langInfo(lang).english} yet · type below` : 'Voice is off · typing works'}</span>
               )}
@@ -157,6 +143,15 @@ export default function Sahay({ status }) {
       {card && (
         <section ref={cardRef} className="mx-auto max-w-4xl scroll-mt-24 px-5 pb-24">
           <MargCard card={card} lang={lang} />
+          <div className="relative mt-6 h-64 overflow-hidden rounded-[24px] sm:h-72">
+            <Scene name="scene-legal-aid" alt="A woman meeting a legal-aid advocate across a desk in a sunlit office" position="45% 45%" sizes="(max-width: 900px) 100vw, 900px" />
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/50 to-transparent" />
+            <div className="absolute left-6 top-1/2 max-w-xs -translate-y-1/2 sm:left-10">
+              <div className="font-display text-2xl leading-tight">You don't have to do this alone.</div>
+              <p className="mt-2 text-sm text-ink-2">Your District Legal Services Authority gives a free lawyer to eligible people.</p>
+              <a href="tel:15100" className="pill pill-dark mt-4 !py-2 text-sm">Call 15100</a>
+            </div>
+          </div>
         </section>
       )}
     </div>
