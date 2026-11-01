@@ -52,6 +52,8 @@ async def _space_chat(token: str, messages: list[dict], max_tokens: int) -> str:
 
 async def _openai_chat(base: str, key: str, model: str, messages: list[dict], max_tokens: int,
                        temperature: float, want_json: bool) -> str:
+    if key and "aiplatform.googleapis.com" in base:
+        return await _vertex_chat(base, key, model, messages, max_tokens, temperature, want_json)
     body: dict = {
         "model": model,
         "messages": messages,
@@ -109,3 +111,29 @@ async def _vertex_token() -> str:
 
     _vertex["token"] = await asyncio.to_thread(refresh)
     return _vertex["token"]
+
+
+async def _vertex_chat(base: str, key: str, model: str, messages: list[dict], max_tokens: int,
+                       temperature: float, want_json: bool) -> str:
+    """Gemini on Vertex AI with an API key (native generateContent; the
+    OpenAI-compatible Vertex endpoint only takes OAuth tokens)."""
+    system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
+    contents = [{"role": "user" if m["role"] == "user" else "model", "parts": [{"text": m["content"]}]}
+                for m in messages if m["role"] != "system"]
+    body: dict = {
+        "contents": contents,
+        "generationConfig": {"maxOutputTokens": max_tokens, "temperature": temperature,
+                             # spoken replies want speed, not hidden reasoning
+                             "thinkingConfig": {"thinkingBudget": 0}},
+    }
+    if system:
+        body["systemInstruction"] = {"parts": [{"text": system}]}
+    if want_json:
+        body["generationConfig"]["responseMimeType"] = "application/json"
+    url = f"{base}/publishers/google/models/{model.removeprefix('google/')}:generateContent"
+    async with httpx.AsyncClient(timeout=45) as client:
+        r = await client.post(url, json=body, headers={"x-goog-api-key": key})
+    if r.status_code != 200:
+        raise RuntimeError(f"Vertex {r.status_code}: {r.text[:300]}")
+    parts = r.json()["candidates"][0].get("content", {}).get("parts", [])
+    return "".join(p.get("text", "") for p in parts).strip()
