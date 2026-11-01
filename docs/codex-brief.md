@@ -57,61 +57,43 @@ Write the SVG by hand in code so it's crisp at any size.
 
 Keep the SVGs clean: no metadata, no editor junk, run through svgo.
 
-## 5. Page layout and which image goes where
+## 5. Direction change (read this first)
 
-The integrator will build these sections. Make each image for its slot, respecting the **safe area** (where text will sit on top, which must stay calm and empty).
+The first round of scene illustrations (a woman at a tea stall, a courtroom) **is rejected**: it looked like generic 3D stock, oversaturated and off-palette. **Delete any scene images you made.**
 
-1. **Home hero:** full-bleed background behind the huge "न्यायमित्र" headline (centre).
-2. **Two door cards** (side by side, about 600×450 each): one for सहाय, one for अभ्यास. The image fades in on hover behind white-ish text on the left half.
-3. **"How it works" stacking cards:** gnani.ai-style sticky stack of 4 cards, each about 1200×700, pinned 24 px lower than the previous one as you scroll. Each card has text on the **left 45%** and the image on the **right 55%**.
-4. **Languages strip:** wide band (about 2400×600) behind a row of 17 language names.
-5. **Footer card:** the pastel card overlapping the dark footer (about 1600×600), with text centred in the top third.
-6. **Social preview (OG image):** 1200×630.
+gnani.ai's cards don't use illustrations. They show **real product UI floating on soft pastel gradients**. We do the same, and the integrator builds the UI in code. So your raster work is **only abstract gradient and light textures**. No people, no places, no objects, no scenes.
 
-## 6. Raster images (generate these; prompts are exact)
+## 6. Gradient textures (generate or render; prompts are exact)
 
-Generate each at the listed size or larger, keep the best of 2–4 tries, then export **WebP, quality 82, under 350 KB**. Also export an **800 px wide** version named `*-800.webp`. Put everything in `web/public/img/`. Every prompt implicitly includes the global negative list in §3.
+These are backgrounds only. Each is smooth, grainy, with no shapes that pull the eye. If the model adds objects, render them in code instead (layered radial gradients plus a noise overlay via sharp or ImageMagick), which is often better. Export **WebP quality 85, under 250 KB**, plus a `*-800.webp` variant, into `web/public/img/`.
 
-### 6.1 `hero-rays.webp`: 2400×1400
-> Abstract soft sunburst of light rays radiating upward from below the bottom centre of the frame, like dawn light through mist. Fine, evenly spaced translucent white rays over a smooth gradient: pale cyan (#A2EBFC) on the upper left, lavender (#E2E0FB) on the upper right, warm peach (#FFD3B7) glowing near the bottom centre where the rays originate. Very soft focus, subtle film grain, airy and luminous, high-key. The central 60% of the frame is the calmest, brightest area (headline sits there). Edges fade to off-white #F9FAFB. No objects, no horizon line, purely atmospheric. 16:9-ish wide composition.
+Shared style: *an ultra-smooth airbrushed pastel gradient, like soft studio light on matte paper, fine even film grain (about 4%), no banding, no objects, no texture patterns, no text.*
 
-### 6.2 `door-sahay.webp`: 1600×1200
-> Soft 3D editorial illustration, matte clay-like materials, pastel palette. A young Indian woman in a simple cotton salwar kurta stands at a small roadside tea stall at early evening, seen from three-quarter behind, holding a basic smartphone to her ear, calm and focused. Warm string light, a steel kettle, a bench, a parked bicycle, out-of-focus shop shutters. Soft sound-wave ripples in translucent lavender (#E2E0FB) gently radiate from the phone into the air. Lighting: golden hour mixed with cool cyan sky (#A2EBFC), peach highlights (#FFD3B7). Left half of the frame is quieter, softer background (text overlays there); subject placed right of centre. Gentle depth of field, film grain, dignified and hopeful mood.
+| File | Size | Prompt / recipe |
+|---|---|---|
+| `hero-rays.webp` | 2400×1400 | Soft sunburst of fine translucent white light rays radiating up from just below the bottom centre, over pale cyan `#A2EBFC` (upper left) → lavender `#E2E0FB` (upper right) → peach `#FFD3B7` glow at the bottom centre. Centre 60% calm and bright. Edges fade to `#F9FAFB`. |
+| `card-violet.webp` | 1800×1100 | Diagonal gradient from top-right lavender-violet `#BDB9F7` through white at 45% to off-white bottom-left. Like the "Agents" card on gnani.ai. |
+| `card-peach.webp` | 1800×1100 | Diagonal gradient from white at the left to peach `#FFD3B7` at bottom-centre and lavender `#E2E0FB` at the top-right corner. Like the "Analytics" card on gnani.ai. |
+| `card-cyan.webp` | 1800×1100 | Soft gradient from cyan `#A2EBFC` at the top-left through white to pale lavender `#E2E0FB` at the bottom-right. |
+| `card-dawn.webp` | 1800×1100 | Peach `#FFD3B7` glow at the bottom-right, violet `#8981F1` at 25% opacity at the top-right, white elsewhere, with faint vertical light rays. |
+| `footer-card.webp` | 1600×600 | Cyan glow at the top-left, lavender at the top-right, peach at the bottom-centre, faint rays rising from the bottom-centre. Top third calmest. |
 
-### 6.3 `door-abhyas.webp`: 1600×1200
-> Soft 3D editorial illustration, matte clay-like materials, pastel palette. Interior of a small Indian district courtroom, empty, morning light: a raised wooden judge's bench with a plain high-backed chair, a ceiling fan, tall windows with light streaming in as soft rays, a lectern for the advocate in the foreground, stacks of case files tied with faded red cloth tape on a side table, a wall clock. One young advocate in a black coat and white bands stands at the lectern seen from behind, mid-gesture. Translucent violet (#8981F1) sound-wave ribbons travel from the bench toward the advocate, suggesting the judge speaking. Palette: off-white walls, honey wood, lavender and cyan light, peach accents. Left half calmer for text. Camera: eye level from behind the lectern, 35mm feel. No gavel, no flags, no emblems, no visible text anywhere.
-
-### 6.4 Stacking cards: `stack-1-speak.webp`, `stack-2-path.webp`, `stack-3-letter.webp`, `stack-4-court.webp`: each 1800×1400
-Shared style for all four (keep them visually consistent, as one series): *soft 3D still life on a seamless off-white (#F9FAFB) to lavender (#E2E0FB) sweep, matte clay and frosted-glass materials, single soft key light from the upper left, gentle long shadows in lavender (not black), subtle grain, objects placed in the right two-thirds, left third empty.*
-
-1. **`stack-1-speak`:** A simple smartphone lying at a slight angle, from which a series of rounded, translucent frosted-glass waveform bars rise and float upward, tinted cyan (#A2EBFC) to violet (#8981F1), like a voice becoming solid. Small floating spheres of peach light around them.
-2. **`stack-2-path`:** A winding ribbon path made of cream paper (#FCF7F2), rising in gentle switchbacks from the bottom toward the top right, with four small rounded milestone tokens along it in cyan, lavender, peach and violet. At the end, a tiny glowing doorway shape. It suggests "step by step, here's where to go".
-3. **`stack-3-letter`:** A neatly folded formal letter and envelope in cream paper, with a soft violet wax-style seal (plain circle, no symbol), resting on a frosted glass tray. Beside it a fountain pen and a small stack of documents with a paperclip. A soft peach glow behind the letter, like it's ready to send. Paper looks blank (no writing).
-4. **`stack-4-court`:** A miniature, toy-like district courtroom diorama on a round frosted-glass pedestal: a small judge's bench, a lectern, two tiny chairs, a ceiling fan. A translucent violet speech-wave ribbon arcs from the bench to the lectern. Playful but dignified, in the same clay style.
-
-### 6.5 `languages-band.webp`: 2400×600
-> Abstract wide banner: seventeen soft, flowing translucent silk ribbons weaving horizontally across the frame and interlacing, each a different gentle hue from the palette (cyan #A2EBFC, lavender #E2E0FB, peach #FFD3B7, violet #8981F1, cream, pale mint, rose). Background off-white #F9FAFB. Light and airy, soft shadows, subtle grain. The vertical centre band (middle 40% of the height) stays low-contrast because text sits over it. No letters or symbols.
-
-### 6.6 `footer-card.webp`: 1600×600
-> Abstract pastel light field: soft radial glows of cyan (#A2EBFC) top left, lavender (#E2E0FB) top right, peach (#FFD3B7) bottom centre, with faint fine light rays rising from the bottom centre. Smooth, minimal, grainy, no objects. The top third is the calmest area.
-
-### 6.7 `og-image.png`: 1200×630 (composited, not generated as one shot)
-Composite with code (sharp or ImageMagick) rather than asking the image model for text:
-- Background: crop `hero-rays.webp` to 1200×630.
-- Left-aligned, vertically centred: `logo-mark.svg` at 72 px, then the wordmark "न्यायमित्र" in **Tiro Devanagari Sanskrit** (download the font from Google Fonts into a temp folder, not into the repo) at 110 px in `#0B0B0F`, then the line "A friend in court, in your language." in Gambarino or Georgia at 40 px, `#344054`.
-- Bottom-left small text in Inter 22 px, `#667085`: "Built on Gnani Prisma · Timbre · Evon".
-- 72 px padding all round. Check the Devanagari conjuncts (न्या, त्र) render correctly; if your renderer breaks them, render the text via a headless browser screenshot instead.
+### `og-image.png`: 1200×630 (composited in code, not generated)
+- Background: crop `hero-rays.webp`.
+- Left-aligned and vertically centred: `logo-mark.svg` at 72 px, the wordmark "न्यायमित्र" in Tiro Devanagari Sanskrit at 110 px `#0B0B0F` (font downloaded to a temp folder, not the repo), then "A friend in court, in your language." in Georgia or Gambarino at 40 px `#344054`.
+- Bottom-left: Inter 22 px `#667085`, "Built on Gnani Prisma · Timbre · Evon". 72 px padding.
+- Check the conjuncts न्या and त्र render correctly. If they break, render via a headless browser screenshot.
 
 ## 7. `web/public/img/MANIFEST.md`
 
-For every file you made, one row: filename, pixel size, file size, the slot it's for (§5), the final prompt you actually used (if you changed it, say why), and **alt text** (one plain sentence, e.g. "A woman at a tea stall talking on her phone at dusk, soft sound waves rising from it."). Add the brand files and say which logo variant you chose and why.
+For every file you made, one row: filename, pixel size, file size, what it's for, and how you made it (prompt or code recipe). Add the brand files and say which logo variant you chose and why.
 
 ## 8. Quality bar (check each before keeping it)
 
 1. Squint test: does the image read in one second at 300 px wide?
-2. Text-overlay test: put the text "न्यायमित्र" over the safe area in your head. Is it still readable?
+2. Background test: would a white UI card and black text sit on it cleanly?
 3. Does it look like the same family as the other images (palette, grain, materials)?
 4. Anything from the negative list sneaking in, especially garbled text, gavels or flags? Regenerate.
-5. File size under 350 KB (WebP) and the 800 px variant exists.
+5. File size under 250 KB (WebP) and the 800 px variant exists.
 
 When done, print a short summary: files created, the chosen logo variant, anything you couldn't do. Leave everything uncommitted.
