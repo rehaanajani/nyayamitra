@@ -11,7 +11,7 @@ import re
 import uuid
 
 from . import llm
-from .config import Keys
+from .config import Keys, speech_style
 from .hindi import to_digits
 
 _dir = os.path.join(os.path.dirname(__file__), "knowledge")
@@ -32,12 +32,6 @@ OPENING = {
     "hi": "हाँ counsel, बोलिए। समय कम है, सीधे मुद्दे पर आइए।",
     "ta": "சரி counsel, சொல்லுங்கள். நேரம் குறைவு, நேரடியாக விஷயத்துக்கு வாருங்கள்.",
     "en": "Yes, counsel. Go ahead, and please come straight to the point.",
-}
-
-LANG_STYLE = {
-    "hi": "Hindi in Devanagari script the way district judges in Uttar Pradesh actually speak, mixing in English legal terms (bail, section, FIR, counsel) in Latin script",
-    "ta": "Tamil in Tamil script the way Chennai magistrates speak, mixing in English legal terms (bail, section, complaint, counsel) in Latin script",
-    "en": "Indian courtroom English",
 }
 
 _OLD_RE = re.compile(
@@ -85,11 +79,12 @@ def find_old_citations(text: str) -> list[dict]:
 def correction(hits: list[dict], lang: str) -> str:
     h = hits[0]
     old, new, topic = h["old"], h["new"], h["topic"]
-    return {
+    lines = {
         "hi": f"रुकिए counsel। {old}? वो अब लागू नहीं है। एक जुलाई दो हज़ार चौबीस से {topic} के लिए {new} है। सही धारा से दोबारा बोलिए।",
         "ta": f"நில்லுங்கள் counsel. {old}? அது இப்போது செல்லாது. 2024 ஜூலை முதல் {topic} க்கு {new} தான். சரியான பிரிவுடன் மீண்டும் சொல்லுங்கள்.",
         "en": f"Stop there, counsel. {old}? That has been repealed. Since July 2024, {topic} is under {new}. Restate it with the correct section.",
-    }.get(lang, "")
+    }
+    return lines.get(lang) or lines["en"]
 
 
 def interject(lang: str, partial: str, seconds: float) -> dict | None:
@@ -98,11 +93,13 @@ def interject(lang: str, partial: str, seconds: float) -> dict | None:
     if hits:
         return {"speaker": "judge", "text": correction(hits, lang), "flags": [{"type": "old_citation", **hits[0]}]}
     if seconds > 45:
-        return {"speaker": "judge", "text": {
+        lines = {
             "hi": "Counsel, यह भाषण नहीं है। एक लाइन में बताइए, आपका मुख्य तर्क क्या है?",
             "ta": "Counsel, இது பேச்சு அல்ல. ஒரே வரியில் உங்கள் முக்கிய வாதம் என்ன?",
             "en": "Counsel, this is not a speech. In one line, what is your main submission?",
-        }.get(lang, ""), "flags": [{"type": "monologue", "seconds": round(seconds)}]}
+        }
+        return {"speaker": "judge", "text": lines.get(lang) or lines["en"],
+                "flags": [{"type": "monologue", "seconds": round(seconds)}]}
     return None
 
 
@@ -144,7 +141,7 @@ The user is: {case['you_are']}.
 Case facts: {json.dumps(case['facts'], ensure_ascii=False)}
 Points the bench cares about: {json.dumps(case['bench_focus'], ensure_ascii=False)}
 
-Speak in {LANG_STYLE.get(lang, LANG_STYLE['en'])}.
+Speak in {speech_style(lang)}. If that language is not Hindi, Tamil or English, still speak it the way a local district court would.
 Reply with ONE or TWO short spoken sentences, like a real Indian district court: no greetings, no lists, no markdown.
 {"Ask exactly one pointed question that tests the user's last submission." if speaker == "judge" else "End by pointing at the gap in their argument."}
 Use only BNS, BNSS and BSA section numbers (the IPC, CrPC and Evidence Act are repealed). Never invent case names; if you need authority, ask the user for it."""
@@ -217,7 +214,7 @@ JSON: {{"scores": {{"law": n, "facts": n, "bench_handling": n, "delivery": n}}, 
             "bench_handling": base - 5,
             "delivery": max(10, base - 3 * sum(fillers.values())),
         }
-        result["notes"] = ["Connect an LLM in Settings for a written review of this round."]
+        result["notes"] = ["Connect an LLM (LLM_BASE_URL in server/.env) for a written review of this round."]
     return result
 
 
