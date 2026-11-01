@@ -21,4 +21,4 @@ gcloud run deploy nyayamitra-api \
 URL=$(gcloud run services describe nyayamitra-api --project "$PROJECT" --region "$REGION" --format 'value(status.url)')
 echo
 echo "API live at: $URL"
-echo "Set VITE_API_BASE=$URL in Vercel (Project → Settings → Environment Variables) and redeploy."
+echo "The web app reads this URL from web/.env.production; update it there only if the URL changes."
