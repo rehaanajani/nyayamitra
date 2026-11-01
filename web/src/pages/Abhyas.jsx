@@ -6,7 +6,6 @@ import useVoice from '../lib/useVoice'
 import { FadeUp, LightField, Orb, Reveal, SectionLabel } from '../components/ui'
 import LanguageMenu from '../components/LanguageMenu'
 import { langInfo, useLang } from '../lib/lang'
-import Transcript from '../components/Transcript'
 import Nirnay from '../components/Nirnay'
 import Scene from '../components/Scene'
 
@@ -105,55 +104,172 @@ function CasePicker({ onPick, preselect }) {
   )
 }
 
+const AXES = [
+  ['law', 'विधि', 'Law'],
+  ['facts', 'तथ्य', 'Facts'],
+  ['bench_handling', 'उत्तर', 'Answering the bench'],
+  ['delivery', 'वाणी', 'Delivery'],
+]
+const avg = (o) => Math.round(AXES.reduce((t, [k]) => t + (o?.[k] || 0), 0) / AXES.length)
+
+function TurnBanner({ phase, round, rounds, opponent }) {
+  const text = {
+    you: `Your turn · Round ${round} of ${rounds} · present your argument`,
+    opponent: `${opponent} is responding…`,
+    bench: 'The bench is considering…',
+    done: 'Hearing closed · the verdict is being written',
+  }[phase]
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={phase + round}
+        initial={{ opacity: 0, y: -8, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 8 }}
+        className={`mx-auto flex w-fit items-center gap-2.5 rounded-full px-5 py-2.5 text-sm font-medium shadow-[0_10px_30px_-15px_rgba(16,24,40,.4)] ${phase === 'you' ? 'bg-ink text-white' : 'border border-white/80 bg-white/70 text-ink backdrop-blur-xl'}`}
+      >
+        <span className={`h-2 w-2 rounded-full ${phase === 'you' ? 'animate-pulse bg-go' : 'bg-violet'}`} />
+        {text}
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+function Party({ label, name, text, live, waiting, tone }) {
+  return (
+    <div className={`card flex min-h-[300px] flex-col p-6 ${tone === 'you' ? 'ring-1 ring-ink/10' : ''}`}>
+      <div className="flex items-center gap-2">
+        <span className={`h-2.5 w-2.5 rounded-full ${tone === 'you' ? 'bg-ink' : 'bg-[#e8590c]'}`} />
+        <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">{label}</span>
+      </div>
+      <div className="mt-1 text-sm text-ink-2">{name}</div>
+      <div className="mt-5 flex-1">
+        {text ? (
+          <motion.p key={text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="font-display text-[22px] leading-snug text-ink">
+            {text}{live && <span className="ml-1 inline-block h-5 w-[3px] animate-pulse bg-ink/50 align-middle" />}
+          </motion.p>
+        ) : waiting ? (
+          <div className="flex gap-1.5 pt-2">{[0, 1, 2].map((i) => <motion.span key={i} className="h-2 w-2 rounded-full bg-[#e8590c]/70" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.12 }} />)}</div>
+        ) : (
+          <p className="text-[15px] text-muted">{tone === 'you' ? 'Awaiting your argument…' : 'Awaiting opposing counsel…'}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ScoreBars({ scores }) {
+  if (!scores) return null
+  return (
+    <div className="mt-5 grid gap-3">
+      {AXES.map(([k, deva, en]) => (
+        <div key={k}>
+          <div className="flex items-center justify-between text-[12.5px] text-ink-2">
+            <span className="font-medium text-ink">{scores.you[k]}</span>
+            <span><span className="font-deva">{deva}</span> · {en}</span>
+            <span className="font-medium text-[#b0623a]">{scores.them[k]}</span>
+          </div>
+          <div className="mt-1 flex items-center gap-1.5">
+            <div className="flex h-2 flex-1 justify-end overflow-hidden rounded-full bg-white/70"><motion.div className="h-full rounded-full bg-ink" initial={{ width: 0 }} animate={{ width: `${scores.you[k]}%` }} transition={{ duration: 0.8 }} /></div>
+            <span className="text-[10px] text-muted">vs</span>
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/70"><motion.div className="h-full rounded-full bg-[#e8590c]/80" initial={{ width: 0 }} animate={{ width: `${scores.them[k]}%` }} transition={{ duration: 0.8 }} /></div>
+          </div>
+        </div>
+      ))}
+      <div className="mt-1 flex items-center justify-between rounded-xl bg-white/70 px-4 py-2 text-sm">
+        <span>You <b className="text-lg">{avg(scores.you)}</b></span>
+        <span className="text-muted">this round</span>
+        <span><b className="text-lg text-[#b0623a]">{avg(scores.them)}</b> Them</span>
+      </div>
+    </div>
+  )
+}
+
+function MicOrb({ voice, canTalk }) {
+  const live = voice.listening || voice.speaking
+  const level = voice.speaking ? voice.outLevel : voice.micLevel
+  return (
+    <button
+      onClick={() => (voice.listening ? voice.stop() : voice.start())}
+      disabled={!canTalk}
+      className="group relative grid place-items-center disabled:opacity-50"
+      aria-label={voice.listening ? 'Stop the microphone' : 'Speak your argument'}
+    >
+      <Orb tone="bench" level={level} active={live} size={170} />
+      <span className={`absolute grid h-16 w-16 place-items-center rounded-full shadow-lg transition group-hover:scale-105 ${voice.listening ? 'bg-ink text-white' : 'bg-white text-ink'}`}>
+        {voice.listening ? <Mic size={26} /> : <MicOff size={24} />}
+      </span>
+    </button>
+  )
+}
+
 function Court({ matter, side, lang, temperament, status, onExit }) {
-  const [items, setItems] = useState([])
-  const [thinking, setThinking] = useState(false)
+  const [rounds, setRounds] = useState([])           // [{ you, opponent, bench }]
+  const [phase, setPhase] = useState('you')            // you | opponent | bench | done
+  const [youNow, setYouNow] = useState('')
+  const [oppNow, setOppNow] = useState('')
+  const [bench, setBench] = useState({ text: '', scores: null, flags: [] })
   const [seconds, setSeconds] = useState(0)
   const [debrief, setDebrief] = useState(null)
-  const [ending, setEnding] = useState(false)
   const [text, setText] = useState('')
-  const itemsRef = useRef(items)
-  itemsRef.current = items
+  const roundsRef = useRef(rounds)
+  roundsRef.current = rounds
+  const phaseRef = useRef(phase)
+  phaseRef.current = phase
   const interjecting = useRef(false)
   const endedRef = useRef(false)
-  const turnsRef = useRef(0)
   const canTalk = status.gnani && langInfo(lang).voice
-  const rounds = matter.rounds || 5
-  const round = Math.min(rounds, items.filter((m) => m.role === 'user' && !m.interrupt).length + 1)
+  const total = matter.rounds || 5
+  const round = Math.min(total, rounds.length + 1)
   const me = matter.sides?.[side]
   const youAre = me ? `Counsel for the ${side}, ${me.name}` : matter.you_are
+  const oppName = matter.sides ? `Senior counsel for the ${side === 'petitioner' ? 'respondent' : 'petitioner'}` : matter.opponent
 
   useEffect(() => {
-    const t = setInterval(() => setSeconds((s) => s + 1), 1000)
+    const t = setInterval(() => setSeconds((x) => x + 1), 1000)
     return () => clearInterval(t)
   }, [])
 
-  function speak(text, role) {
-    if (canTalk) voice.say(text, { lang, role })
-  }
+  const history = () => roundsRef.current.flatMap((r) => [
+    { role: 'user', text: r.you }, { role: 'opponent', text: r.opponent }, { role: 'judge', text: r.bench.text },
+  ])
+
+  async function say(t, role) { if (canTalk) await voice.say(t, { lang, role }) }
 
   async function onTurn(userText) {
-    setItems((x) => [...x, { role: 'user', text: userText }])
-    setThinking(true)
+    if (phaseRef.current !== 'you') return
+    setYouNow(userText); setOppNow(''); setPhase('opponent')
     try {
-      const r = await api('/api/abhyas/turn', { case_id: matter.id, side, lang, temperament, text: userText, history: itemsRef.current })
-      setItems((x) => [...x, { role: r.speaker, text: r.text, flags: r.flags }])
-      speak(r.text, r.speaker)
-      // after the last round, let the reply land, then deliver the verdict
-      turnsRef.current += 1
-      if (turnsRef.current >= rounds) setTimeout(() => end(), canTalk ? 6000 : 1800)
-    } catch (e) { voice.setError(e.message) }
-    setThinking(false)
+      const r = await api('/api/abhyas/round', { case_id: matter.id, side, lang, temperament, text: userText, history: history(), round })
+      if (r.correction) {
+        setBench({ text: r.correction.text, scores: bench.scores, flags: r.correction.flags })
+        setPhase('you')
+        await say(r.correction.text, 'judge')
+        return
+      }
+      setOppNow(r.opponent.text)
+      await say(r.opponent.text, 'opponent')
+      setPhase('bench')
+      setBench({ text: r.bench.text, scores: r.bench.scores, flags: [] })
+      const done = [...roundsRef.current, { you: userText, opponent: r.opponent.text, bench: r.bench }]
+      setRounds(done)
+      await say(r.bench.text, 'judge')
+      if (done.length >= total) { end(done); return }
+      setPhase('you'); setYouNow('')
+    } catch (e) {
+      voice.setError('Something went wrong reaching the court. Try that submission again.')
+      setPhase('you')
+    }
   }
 
   async function onPartial(partial, secs) {
-    if (interjecting.current) return false
+    if (interjecting.current || phaseRef.current !== 'you') return false
     const r = await api('/api/abhyas/interject', { case_id: matter.id, lang, partial, seconds: secs }).catch(() => null)
     if (!r?.interjection) return false
     interjecting.current = true
-    const j = r.interjection
-    setItems((x) => [...x, { role: 'user', text: partial, interrupt: true }, { role: 'judge', text: j.text, flags: j.flags }])
-    speak(j.text, 'judge')
+    setYouNow(partial)
+    setBench((b) => ({ ...b, text: r.interjection.text, flags: r.interjection.flags }))
+    say(r.interjection.text, 'judge')
     setTimeout(() => { interjecting.current = false }, 1500)
     return true
   }
@@ -161,74 +277,106 @@ function Court({ matter, side, lang, temperament, status, onExit }) {
   const voice = useVoice({ lang, onTurn, onPartial })
 
   useEffect(() => {
-    api(`/api/abhyas/opening?lang=${lang}`).then(async (o) => {
-      setItems([{ role: 'judge', text: o.text }])
-      if (canTalk) { await voice.start(); speak(o.text, 'judge') }
-    })
+    api(`/api/abhyas/opening?lang=${lang}`).then((o) => { setBench({ text: o.text, scores: null, flags: [] }); say(o.text, 'judge') })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function end() {
+  async function end(done = roundsRef.current) {
     if (endedRef.current) return
     endedRef.current = true
-    setEnding(true)
+    setPhase('done')
     voice.stop(); voice.stopSpeaking()
-    try { setDebrief(await api('/api/abhyas/debrief', { case_id: matter.id, side, lang, history: itemsRef.current })) } catch (e) { voice.setError(e.message) }
-    setEnding(false)
+    const hist = done.flatMap((r) => [{ role: 'user', text: r.you }, { role: 'opponent', text: r.opponent }, { role: 'judge', text: r.bench.text }])
+    try {
+      const d = await api('/api/abhyas/debrief', { case_id: matter.id, side, lang, history: hist })
+      // the verdict uses the bench's own round-by-round scores
+      if (done.length) {
+        const scores = {}
+        for (const [k] of AXES) scores[k] = Math.round(done.reduce((t, r) => t + r.bench.scores.you[k], 0) / done.length)
+        d.scores = scores
+      }
+      setDebrief(d)
+    } catch (e) { voice.setError(e.message) }
   }
 
   if (debrief) return <Nirnay result={debrief} matter={matter} onAgain={onExit} seconds={seconds} />
 
   const mm = String(Math.floor(seconds / 60)).padStart(2, '0')
   const ss = String(seconds % 60).padStart(2, '0')
-  const lastBench = [...items].reverse().find((m) => m.role !== 'user')
 
   return (
-    <section className="mx-auto grid max-w-6xl gap-6 px-5 pb-20 lg:grid-cols-[360px_1fr]">
-      <div className="flex flex-col gap-5">
-        <div className="card p-6">
-          <button onClick={onExit} className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><ArrowLeft size={14} /> Matters</button>
-          <div className="font-display text-2xl leading-snug">{matter.title}</div>
-          <div className="mt-1 text-sm text-muted">{matter.court}</div>
-          <div className="mt-4 text-sm"><span className="text-muted">You are:</span> {youAre}</div>
-          <div className="mt-4">
-            <div className="flex items-center justify-between text-xs text-muted"><span>Round {round} of {rounds}</span><span>{Math.max(0, rounds - round)} left</span></div>
-            <div className="mt-1.5 flex gap-1">{Array.from({ length: rounds }).map((_, i) => <span key={i} className={`h-1.5 flex-1 rounded-full ${i < round ? 'bg-ink' : 'bg-line'}`} />)}</div>
-          </div>
-          {me && (
-            <details className="mt-4 text-sm" open>
-              <summary className="cursor-pointer font-medium">Your strongest points</summary>
-              <ul className="mt-2 grid gap-1.5 text-ink-2">{me.key_args.map((f) => <li key={f}>• {f}</li>)}</ul>
-            </details>
-          )}
-          <details className="mt-4 text-sm">
-            <summary className="cursor-pointer font-medium">Case file</summary>
-            <ul className="mt-2 grid gap-1.5 text-ink-2">{matter.facts.map((f) => <li key={f}>• {f}</li>)}</ul>
-          </details>
+    <section className="mx-auto max-w-[1280px] px-5 pb-24">
+      {/* top bar */}
+      <div className="card flex flex-wrap items-center gap-4 px-6 py-4">
+        <button onClick={onExit} className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><ArrowLeft size={14} /> Matters</button>
+        <div className="min-w-0">
+          <div className="font-display truncate text-xl leading-tight">{matter.title}</div>
+          <div className="text-xs text-muted">{matter.court}</div>
         </div>
-        <div className="card flex flex-col items-center gap-4 p-6">
-          <Orb tone="bench" level={voice.speaking ? voice.outLevel : voice.micLevel * 0.6} active={voice.speaking || voice.listening} size={190} label={voice.speaking ? (lastBench?.role === 'opponent' ? 'प्रतिवाद' : 'न्यायाधीश') : ''} />
-          <div className="flex items-center gap-2 text-sm text-muted"><Timer size={14} /> {mm}:{ss}</div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {voice.listening ? (
-              <button className="pill pill-light" onClick={voice.stop}><MicOff size={16} /> Mute</button>
-            ) : (
-              <button className="pill pill-light" onClick={voice.start} disabled={!canTalk}><Mic size={16} /> Mic</button>
-            )}
-            <button className="pill pill-dark" onClick={end} disabled={ending}><Square size={14} /> {ending ? 'Judging…' : 'End hearing'}</button>
-          </div>
-          {voice.error && <p className="text-center text-sm text-warn">{voice.error}</p>}
-          <p className="text-center text-xs text-muted">{matter.historic ? 'Opposing counsel answers each submission and the bench presses you.' : 'The bench will cut you off for repealed sections or long speeches. You can cut it off too.'}</p>
+        <div className="ml-auto flex items-center gap-1.5">
+          {Array.from({ length: total }).map((_, i) => (
+            <span key={i} className={`grid h-7 w-7 place-items-center rounded-full text-xs font-medium ${i < rounds.length ? 'bg-ink text-white' : i === rounds.length && phase !== 'done' ? 'border-2 border-ink text-ink' : 'bg-canvas text-muted'}`}>{i + 1}</span>
+          ))}
         </div>
+        <div className="flex items-center gap-1.5 text-sm text-muted"><Timer size={14} /> {mm}:{ss}</div>
+        <button className="pill pill-dark !py-2 text-sm" onClick={() => end()} disabled={phase === 'done'}><Square size={13} /> End hearing</button>
       </div>
 
-      <div className="card flex h-[640px] flex-col p-5">
-        <Transcript items={items} partial={voice.partial} className="flex-1 px-1" />
-        {thinking && <div className="px-2 py-2 text-sm text-muted">The bench is considering…</div>}
-        <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); const v = text.trim(); if (v) { setText(''); onPartial(v, 0).then((took) => { if (!took) onTurn(v) }) } }}>
-          <input value={text} onChange={(e) => setText(e.target.value)} placeholder={matter.historic ? 'Type your submission, e.g. "My Lords, Article 368 gives the power to amend, not to destroy…"' : "Type your submission, e.g. 'My Lord, under Section 438 CrPC…'"} className="flex-1 rounded-full border border-line bg-white px-5 py-3 text-[15px] outline-none focus:border-violet" />
-          <button className="pill pill-dark !px-4" aria-label="Send"><Send size={16} /></button>
-        </form>
+      <div className="mt-6"><TurnBanner phase={phase} round={round} rounds={total} opponent={oppName} /></div>
+
+      {/* the courtroom: you, the bench, opposing counsel */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px_1fr]">
+        <Party label="You" name={youAre} text={youNow || voice.partial} live={!!voice.partial && !youNow} tone="you" />
+
+        <div className="card flex flex-col items-center bg-gradient-to-b from-lav/60 via-white/80 to-white p-6 text-center">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted"><span className="font-deva text-sm normal-case tracking-normal text-ink">न्यायाधीश</span> · The bench</div>
+          <AnimatePresence mode="wait">
+            <motion.p key={bench.text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-3 min-h-[72px] text-[15.5px] leading-relaxed text-ink">
+              {phase === 'bench' && !bench.text ? 'Considering…' : bench.text}
+            </motion.p>
+          </AnimatePresence>
+          {bench.flags?.map((f, i) => f.type === 'old_citation' && (
+            <span key={i} className="mt-1 rounded-full bg-warn/10 px-3 py-1 text-xs font-medium text-warn">{f.old} → {f.new}</span>
+          ))}
+          <div className="mt-4"><MicOrb voice={voice} canTalk={canTalk} /></div>
+          <div className="mt-2 h-5 text-sm text-muted">
+            {!canTalk ? 'Voice is off · type below' : voice.speaking ? 'The court is speaking' : voice.listening ? 'Listening… talk any time' : 'Tap to speak'}
+          </div>
+          <div className="w-full text-left"><ScoreBars scores={bench.scores} /></div>
+        </div>
+
+        <Party label="Opposing counsel" name={oppName} text={oppNow} waiting={phase === 'opponent'} tone="them" />
       </div>
+
+      {/* type instead of speaking */}
+      <form className="card mt-6 flex gap-2 p-3" onSubmit={(e) => { e.preventDefault(); const v = text.trim(); if (v && phase === 'you') { setText(''); onPartial(v, 0).then((took) => { if (!took) onTurn(v) }) } }}>
+        <input value={text} onChange={(e) => setText(e.target.value)} disabled={phase !== 'you'} placeholder={phase !== 'you' ? 'Wait for your turn…' : matter.historic ? 'Type your submission, e.g. "My Lords, Article 368 gives the power to amend, not to destroy…"' : "Type your submission, e.g. 'My Lord, under Section 482 BNSS…'"} className="flex-1 rounded-full bg-transparent px-4 py-2.5 text-[15px] outline-none disabled:opacity-60" />
+        <button className="pill pill-dark !px-4" aria-label="Submit" disabled={phase !== 'you'}><Send size={16} /></button>
+      </form>
+      {voice.error && <p className="mt-3 text-center text-sm text-warn">{voice.error}</p>}
+
+      {/* round record */}
+      {rounds.length > 0 && (
+        <div className="mt-10">
+          <SectionLabel>Record of proceedings</SectionLabel>
+          <div className="mt-4 grid gap-3">
+            {rounds.map((r, i) => (
+              <div key={i} className="card grid gap-4 p-5 md:grid-cols-[70px_1fr_1fr_1fr]">
+                <div className="font-display text-3xl text-muted">{i + 1}</div>
+                <div><div className="text-[11px] uppercase tracking-wider text-muted">You · {avg(r.bench.scores.you)}</div><p className="mt-1 text-sm">{r.you}</p></div>
+                <div><div className="text-[11px] uppercase tracking-wider text-[#b0623a]">Opposing counsel · {avg(r.bench.scores.them)}</div><p className="mt-1 text-sm">{r.opponent}</p></div>
+                <div><div className="text-[11px] uppercase tracking-wider text-muted">Bench</div><p className="mt-1 text-sm text-ink-2">{r.bench.text}</p></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* case file */}
+      <details className="card mt-6 p-5 text-sm">
+        <summary className="cursor-pointer font-medium">Case file {me ? '· your strongest points' : ''}</summary>
+        {me && <ul className="mt-3 grid gap-1.5 text-ink-2">{me.key_args.map((f) => <li key={f}>• {f}</li>)}</ul>}
+        <ul className="mt-3 grid gap-1.5 text-ink-2">{matter.facts.map((f) => <li key={f}>• {f}</li>)}</ul>
+      </details>
     </section>
   )
 }
@@ -255,12 +403,19 @@ export default function Abhyas({ status, params }) {
         </div>
         {!inCourt && (
           <div className="mx-auto mt-10 max-w-6xl px-5">
-            <div className="relative h-[300px] overflow-hidden rounded-[28px] shadow-[0_30px_60px_-30px_rgba(16,24,40,.45)] sm:h-[420px]">
-              <Scene name="scene-practice" eager alt="A young advocate in a black coat and bands rehearsing at night, a violet voice ribbon rising from his laptop" position="50% 22%" />
-              <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_100%_0%,rgba(11,11,15,.72)_0%,rgba(11,11,15,.35)_38%,transparent_62%)]" />
-              <div className="absolute right-6 top-6 max-w-sm text-right text-white sm:right-10 sm:top-9">
-                <div className="font-display text-3xl leading-tight sm:text-[40px]">2 AM before the hearing.</div>
-                <div className="mt-2 text-[15px] text-white/85">No senior awake to practise with. This bench never sleeps.</div>
+            <div className="grid overflow-hidden rounded-[28px] bg-[#1d1830] shadow-[0_30px_60px_-30px_rgba(16,24,40,.45)] md:grid-cols-[1.45fr_1fr]">
+              <div className="aspect-[4/3]">
+                <Scene name="scene-practice" eager alt="A young advocate in a black coat and bands rehearsing at night as a violet voice ribbon rises from his laptop" position="50% 50%" sizes="(max-width: 768px) 100vw, 760px" />
+              </div>
+              <div className="flex flex-col justify-center bg-gradient-to-br from-[#2a2245] via-[#1d1830] to-[#151224] p-8 text-white sm:p-12">
+                <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/50">अभ्यास · Practice</div>
+                <div className="font-display mt-4 text-4xl leading-[1.08] sm:text-5xl">2 AM before the hearing.</div>
+                <p className="mt-4 max-w-sm text-[16px] leading-relaxed text-white/75">No senior awake to practise with. This bench never sleeps, and it argues back in your language.</p>
+                <div className="mt-6 flex flex-wrap gap-2 text-xs text-white/70">
+                  <span className="rounded-full border border-white/15 px-3 py-1">Opposing counsel</span>
+                  <span className="rounded-full border border-white/15 px-3 py-1">Bench scores every round</span>
+                  <span className="rounded-full border border-white/15 px-3 py-1">5 rounds · verdict</span>
+                </div>
               </div>
             </div>
           </div>
