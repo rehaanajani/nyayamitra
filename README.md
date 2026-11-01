@@ -45,23 +45,23 @@ Browser (React + Vite)
 # backend
 cd server
 uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python fastapi "uvicorn[standard]" httpx websockets python-dotenv python-multipart
-cp .env.example .env   # add keys here, or later in the app's Keys panel
+cp .env.example .env   # add your keys here
 .venv/bin/uvicorn app.main:app --reload --port 8000
 
 # frontend (another terminal)
 cd web && npm install && npm run dev   # http://localhost:5173
 ```
 
-Everything works by typing with no keys at all (rule-based fallbacks). Add a **Gnani key** for voice and an **LLM endpoint** for natural conversation, either in `server/.env` or in the app's **Keys** panel (stored in your browser only).
+Everything works by typing with no keys at all (rule-based fallbacks). Add a **Gnani key** for voice and an **LLM endpoint** for natural conversation, in `server/.env` (never sent to the browser).
 
 ### Serving Evon
 
 ```bash
-vllm serve gnani/gnani-evon-v3.3 --max-model-len 131072 --trust-remote-code \
+vllm serve gnani/gnani-evon-v3.3-30B-A3B --served-model-name evon --max-model-len 131072 --trust-remote-code \
   --enable-auto-tool-choice --tool-call-parser qwen3_coder --reasoning-parser nano_v3
 ```
 
-Then set the LLM base URL to `http://<host>:8000/v1` and the model to `gnani/gnani-evon-v3.3`. Any OpenAI-compatible endpoint works as a stand-in.
+Then set the LLM base URL to `http://<host>:8000/v1` and the model to `evon`. Any OpenAI-compatible endpoint works as a stand-in.
 
 ## Status
 
