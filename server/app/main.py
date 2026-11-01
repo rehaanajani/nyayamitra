@@ -225,6 +225,24 @@ async def abhyas_turn(req: BenchTurn, request: Request):
         raise HTTPException(404, str(e))
 
 
+class RoundReq(BaseModel):
+    case_id: str
+    side: str | None = None
+    lang: str = "en"
+    temperament: str = "fair"
+    text: str
+    history: list[dict] = []
+    round: int = 1
+
+
+@app.post("/api/abhyas/round")
+async def abhyas_round(req: RoundReq, request: Request):
+    try:
+        return await abhyas.round_turn(keys_from(request), req.case_id, req.side, req.lang, req.temperament, req.history, req.text, req.round)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+
 class Interject(BaseModel):
     lang: str = "hi"
     partial: str
