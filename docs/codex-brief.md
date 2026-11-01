@@ -57,11 +57,21 @@ Write the SVG by hand in code so it's crisp at any size.
 
 Keep the SVGs clean: no metadata, no editor junk, run through svgo.
 
-## 5. Direction change (read this first)
+## 5. Direction (read this first)
 
-The first round of scene illustrations (a woman at a tea stall, a courtroom) **is rejected**: it looked like generic 3D stock, oversaturated and off-palette. **Delete any scene images you made.**
+**Approved, keep it:** the empty-ish district courtroom (advocate in a black gown from behind at the lectern, judge on the bench with a blank, featureless face, a violet sound ribbon flowing from bench to advocate, lavender morning light through tall windows, ceiling fan, files tied with red cloth tape). Save it as `web/public/img/scene-court.webp`. **This image is the style anchor: every scene must look like it belongs in the same film.**
 
-gnani.ai's cards don't use illustrations. They show **real product UI floating on soft pastel gradients**. We do the same, and the integrator builds the UI in code. So your raster work is **only abstract gradient and light textures**. No people, no places, no objects, no scenes.
+**Rejected:** the woman at the tea stall at sunset. The orange sunset, saturated sky and busy street don't match the anchor. Delete it.
+
+**Where scenes are used:** only the two door cards and the two page headers (सहाय, अभ्यास). The "How it works" stacking cards show real product UI built in code, as on gnani.ai, so don't make images for them.
+
+### Scene style (copy this into every scene prompt)
+*Soft 3D animated-film still, matte materials, gentle subsurface skin. Lavender-and-cream morning daylight through tall windows, soft volumetric light rays, cool shadows tinted lavender (never black or brown). Palette: cream walls, honey wood, lavender #E2E0FB, cyan #A2EBFC sky, small peach #FFD3B7 accents, one translucent violet #8981F1 sound ribbon as the hero element. Faces are blank or turned away, with no detailed features. Calm, dignified, hopeful. Shallow depth of field, slight grain. No sunsets, no orange skies, no crowds, no text or signage anywhere.*
+
+### Scene to make: `scene-sahay.webp` (1600×1200), to replace the rejected tea stall
+> [scene style] Inside a small, tidy Indian home in the morning: a young woman in a simple cotton kurta sits at a wooden table by a tall window with lavender morning light, seen from three-quarter behind, holding a basic phone to her ear. On the table: a steel tumbler of tea, a folded salary slip and an envelope. A translucent violet sound ribbon flows from her phone out toward the window light, calm and reassuring. Potted tulsi plant, a wall calendar with no readable text. Left 45% of the frame quieter (text sits there).
+
+Export both as WebP quality 85 (under 350 KB) plus `-800.webp` copies.
 
 ## 6. Gradient textures (generate or render; prompts are exact)
 
