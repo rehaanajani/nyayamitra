@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, FileText, Gavel, Landmark, Mic, MicOff, Plus, Scale, ScrollText, Send, Square, Timer, X } from 'lucide-react'
+import { ArrowLeft, FileText, Gavel, Landmark, Plus, Scale, ScrollText, Send, Square, Timer } from 'lucide-react'
 import { api } from '../lib/api'
 import useVoice from '../lib/useVoice'
-import { FadeUp, LightField, Orb, Reveal, SectionLabel } from '../components/ui'
+import { FadeUp, LightField, Reveal, SectionLabel } from '../components/ui'
 import LanguageMenu from '../components/LanguageMenu'
 import { langInfo, useLang } from '../lib/lang'
 import Nirnay from '../components/Nirnay'
 import Scene from '../components/Scene'
+import MicOrb from '../components/MicOrb'
+import Sheet from '../components/Sheet'
 
 const TEMPERAMENTS = [
   { id: 'kind', label: 'Patient', deva: 'सौम्य' },
@@ -185,24 +187,6 @@ function ScoreBars({ scores }) {
   )
 }
 
-function MicOrb({ voice, canTalk }) {
-  const live = voice.listening || voice.speaking
-  const level = voice.speaking ? voice.outLevel : voice.micLevel
-  return (
-    <button
-      onClick={() => (voice.listening ? voice.stop() : voice.start())}
-      disabled={!canTalk}
-      className="group relative grid place-items-center disabled:opacity-50"
-      aria-label={voice.listening ? 'Stop the microphone' : 'Speak your argument'}
-    >
-      <Orb tone="bench" level={level} active={live} size={124} />
-      <span className={`absolute grid h-14 w-14 place-items-center rounded-full shadow-lg transition group-hover:scale-105 ${voice.listening ? 'bg-ink text-white' : 'bg-white text-ink'}`}>
-        {voice.listening ? <Mic size={26} /> : <MicOff size={24} />}
-      </span>
-    </button>
-  )
-}
-
 function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
   const [rounds, setRounds] = useState([])           // [{ you, opponent, bench }]
   const [phase, setPhase] = useState('you')            // you | opponent | bench | done
@@ -228,13 +212,6 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
 
   // the hearing owns the screen until the verdict arrives
   useEffect(() => { onLock(!debrief); return () => onLock(false) }, [debrief]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!sheet) return
-    const esc = (e) => { if (e.key === 'Escape') setSheet(null) }
-    document.addEventListener('keydown', esc)
-    return () => document.removeEventListener('keydown', esc)
-  }, [sheet])
 
   useEffect(() => {
     const t = setInterval(() => setSeconds((x) => x + 1), 1000)
@@ -291,6 +268,23 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
   }
 
   const voice = useVoice({ lang, onTurn, onPartial })
+  const [micOn, setMicOn] = useState(false)  // voice mode, chosen by the user
+
+  // the mic is open only on your turn, so counsel's voice can't trip it
+  useEffect(() => {
+    if (micOn && phase === 'you' && !voice.listening) voice.start()
+    if ((!micOn || phase !== 'you') && voice.listening) voice.pause()
+  }, [micOn, phase, voice.listening]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const micLabel = !canTalk ? 'Voice is off · type below'
+    : phase === 'opponent' ? 'Counsel is speaking · wait'
+    : phase === 'bench' ? 'The bench is speaking · wait'
+    : phase === 'done' ? 'Hearing closed'
+    : !micOn ? 'Tap the ring to argue by voice'
+    : voice.speaking ? 'The bench is speaking · talk to interrupt'
+    : voice.partial ? 'Listening · pause or tap Done'
+    : 'Your turn · speak now'
+  const micTone = phase === 'you' && micOn ? (voice.speaking ? 'speak' : 'go') : phase === 'you' ? 'wait' : 'speak'
 
   useEffect(() => {
     api(`/api/abhyas/opening?lang=${lang}`).then((o) => { setBench({ text: o.text, scores: null, flags: [] }); say(o.text, 'judge') })
@@ -355,10 +349,7 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
           {bench.flags?.map((f, i) => f.type === 'old_citation' && (
             <span key={i} className="mt-1 rounded-full bg-warn/10 px-3 py-1 text-xs font-medium text-warn">{f.old} → {f.new}</span>
           ))}
-          <div className="mt-3"><MicOrb voice={voice} canTalk={canTalk} /></div>
-          <div className="mt-1 h-5 text-sm text-muted">
-            {!canTalk ? 'Voice is off · type below' : voice.speaking ? 'The court is speaking' : voice.listening ? 'Listening… talk any time' : 'Tap to speak'}
-          </div>
+          <div className="mt-3"><MicOrb voice={voice} on={micOn} onToggle={() => setMicOn((v) => !v)} disabled={!canTalk || phase === 'done'} label={micLabel} tone={micTone} size={124} /></div>
           <div className="w-full text-left"><ScoreBars scores={bench.scores} /></div>
         </div>
 
@@ -373,46 +364,31 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
       </form>
 
       {/* record of proceedings and case file open as a side sheet, so the court never scrolls */}
-      <AnimatePresence>
-        {sheet && (
-          <>
-            <motion.div key="veil" className="fixed inset-0 z-40 bg-ink/20 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSheet(null)} />
-            <motion.aside
-              key="sheet"
-              className="scroll-soft fixed inset-y-3 right-3 z-50 w-[min(92vw,480px)] overflow-y-auto rounded-[28px] border border-line bg-white p-6 shadow-[0_30px_80px_-20px_rgba(16,24,40,.45)]"
-              initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 40, opacity: 0 }} transition={{ duration: 0.25 }}
-            >
-              <div className="flex items-center justify-between">
-                <SectionLabel>{sheet === 'record' ? 'Record of proceedings' : 'Case file'}</SectionLabel>
-                <button onClick={() => setSheet(null)} className="grid h-9 w-9 place-items-center rounded-full hover:bg-canvas" aria-label="Close"><X size={16} /></button>
-              </div>
-              {sheet === 'record' ? (
-                rounds.length ? (
-                  <div className="mt-4 grid gap-3">
-                    {rounds.map((r, i) => (
-                      <div key={i} className="rounded-2xl bg-canvas p-4">
-                        <div className="font-display text-2xl text-muted">Round {i + 1}</div>
-                        <div className="mt-2 text-[11px] uppercase tracking-wider text-muted">You · {avg(r.bench.scores.you)}</div><p className="mt-1 text-sm">{r.you}</p>
-                        <div className="mt-3 text-[11px] uppercase tracking-wider text-[#b0623a]">Opposing counsel · {avg(r.bench.scores.them)}</div><p className="mt-1 text-sm">{r.opponent}</p>
-                        <div className="mt-3 text-[11px] uppercase tracking-wider text-muted">Bench</div><p className="mt-1 text-sm text-ink-2">{r.bench.text}</p>
-                      </div>
-                    ))}
+      <Sheet open={!!sheet} title={sheet === 'record' ? 'Record of proceedings' : 'Case file'} onClose={() => setSheet(null)}>
+{sheet === 'record' ? (
+            rounds.length ? (
+              <div className="mt-4 grid gap-3">
+                {rounds.map((r, i) => (
+                  <div key={i} className="rounded-2xl bg-canvas p-4">
+                    <div className="font-display text-2xl text-muted">Round {i + 1}</div>
+                    <div className="mt-2 text-[11px] uppercase tracking-wider text-muted">You · {avg(r.bench.scores.you)}</div><p className="mt-1 text-sm">{r.you}</p>
+                    <div className="mt-3 text-[11px] uppercase tracking-wider text-[#b0623a]">Opposing counsel · {avg(r.bench.scores.them)}</div><p className="mt-1 text-sm">{r.opponent}</p>
+                    <div className="mt-3 text-[11px] uppercase tracking-wider text-muted">Bench</div><p className="mt-1 text-sm text-ink-2">{r.bench.text}</p>
                   </div>
-                ) : <p className="mt-4 text-sm text-muted">Nothing on record yet. Finish round 1 and it appears here.</p>
-              ) : (
-                <div className="mt-4 text-sm">
-                  <div className="font-display text-xl">{matter.title}</div>
-                  <div className="mt-1 text-muted">{matter.court}</div>
-                  {me && <><div className="mt-5 font-medium">Your strongest points</div><ul className="mt-2 grid gap-1.5 text-ink-2">{me.key_args.map((f) => <li key={f}>• {f}</li>)}</ul></>}
-                  <div className="mt-5 font-medium">Facts</div>
-                  <ul className="mt-2 grid gap-1.5 text-ink-2">{matter.facts.map((f) => <li key={f}>• {f}</li>)}</ul>
-                  {matter.bench_focus && <><div className="mt-5 font-medium">What the bench will press you on</div><ul className="mt-2 grid gap-1.5 text-ink-2">{matter.bench_focus.map((f) => <li key={f}>• {f}</li>)}</ul></>}
-                </div>
-              )}
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+                ))}
+              </div>
+            ) : <p className="mt-4 text-sm text-muted">Nothing on record yet. Finish round 1 and it appears here.</p>
+          ) : (
+            <div className="mt-4 text-sm">
+              <div className="font-display text-xl">{matter.title}</div>
+              <div className="mt-1 text-muted">{matter.court}</div>
+              {me && <><div className="mt-5 font-medium">Your strongest points</div><ul className="mt-2 grid gap-1.5 text-ink-2">{me.key_args.map((f) => <li key={f}>• {f}</li>)}</ul></>}
+              <div className="mt-5 font-medium">Facts</div>
+              <ul className="mt-2 grid gap-1.5 text-ink-2">{matter.facts.map((f) => <li key={f}>• {f}</li>)}</ul>
+              {matter.bench_focus && <><div className="mt-5 font-medium">What the bench will press you on</div><ul className="mt-2 grid gap-1.5 text-ink-2">{matter.bench_focus.map((f) => <li key={f}>• {f}</li>)}</ul></>}
+            </div>
+          )}
+      </Sheet>
     </section>
   )
 }
