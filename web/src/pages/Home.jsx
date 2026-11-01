@@ -95,12 +95,12 @@ export default function Home() {
 
       <section className="mx-auto max-w-[1360px] px-3 pt-24 sm:px-5">
         <FadeUp>
-          <div className="relative h-[420px] overflow-hidden rounded-[32px] sm:h-[520px]">
-            <Scene name="scene-journey" alt="A woman and her advocate in a black coat walking up the steps of a district court" position="58% 55%" sizes="100vw" />
+          <div className="relative h-[460px] overflow-hidden rounded-[32px] sm:h-[600px]">
+            <Scene name="scene-journey" alt="A woman and her advocate in a black coat walking up the steps of a district court" position="62% 12%" sizes="100vw" />
             <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/40 to-transparent" />
             <div className="absolute left-6 top-1/2 max-w-md -translate-y-1/2 sm:left-14">
               <SectionLabel>One case, both doors</SectionLabel>
-              <h2 className="font-display mt-3 text-[clamp(2rem,4vw,3.2rem)] leading-tight">She finds her way. He finds his voice.</h2>
+              <h2 className="font-display mt-3 text-[clamp(2rem,4vw,3.2rem)] leading-[1.1]"><span className="block">She finds her way.</span><span className="block">He finds his voice.</span></h2>
               <p className="mt-4 text-ink-2">The problem Meena describes on सहाय becomes the matter her legal-aid advocate practises on अभ्यास, so both walk into court ready.</p>
             </div>
           </div>
