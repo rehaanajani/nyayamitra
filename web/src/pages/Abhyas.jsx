@@ -245,7 +245,8 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
     { role: 'user', text: r.you }, { role: 'opponent', text: r.opponent }, { role: 'judge', text: r.bench.text },
   ])
 
-  async function say(t, role) { if (canTalk) await voice.say(t, { lang, role }) }
+  // tag: a Timbre v3 expression (the bench clears its throat, sighs) on the first sentence
+  async function say(t, role, tag) { if (canTalk) await voice.say(t, { lang, role, tag }) }
 
   async function onTurn(userText) {
     if (phaseRef.current !== 'you') return
@@ -255,7 +256,7 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
       if (r.correction) {
         setBench({ text: r.correction.text, scores: bench.scores, flags: r.correction.flags })
         setPhase('you')
-        await say(r.correction.text, 'judge')
+        await say(r.correction.text, 'judge', '<sigh>')
         return
       }
       setOppNow(r.opponent.text)
@@ -264,7 +265,7 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
       setBench({ text: r.bench.text, scores: r.bench.scores, flags: [] })
       const done = [...roundsRef.current, { you: userText, opponent: r.opponent.text, bench: r.bench }]
       setRounds(done)
-      await say(r.bench.text, 'judge')
+      await say(r.bench.text, 'judge', avg(r.bench.scores.you) + 10 < avg(r.bench.scores.them) ? '<sigh>' : undefined)
       if (done.length >= total) { end(done); return }
       setPhase('you'); setYouNow('')
     } catch (e) {
@@ -280,7 +281,7 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
     interjecting.current = true
     setYouNow(partial)
     setBench((b) => ({ ...b, text: r.interjection.text, flags: r.interjection.flags }))
-    say(r.interjection.text, 'judge')
+    say(r.interjection.text, 'judge', r.interjection.flags?.length ? '<sigh>' : '<clears throat>')
     setTimeout(() => { interjecting.current = false }, 1500)
     return true
   }
