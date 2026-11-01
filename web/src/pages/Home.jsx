@@ -14,26 +14,26 @@ const MODELS = [
 
 function ModelStrip() {
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.35, duration: 0.7 }} className="mt-14 flex flex-col items-center gap-4">
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.35, duration: 0.7 }} className="mt-16 flex w-full flex-col items-center gap-5">
       <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted">Powered by Gnani's own models</div>
-      <div className="grid w-full max-w-3xl gap-3 sm:grid-cols-3">
+      <div className="grid w-full max-w-6xl gap-4 sm:grid-cols-3">
         {MODELS.map((m, i) => (
           <motion.div
             key={m.name}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.45 + i * 0.1, duration: 0.5 }}
-            className="rounded-2xl border border-white/80 bg-white/60 p-4 text-left shadow-[0_10px_30px_-18px_rgba(16,24,40,.35)] backdrop-blur-xl"
+            className="rounded-3xl border border-white/80 bg-white/60 p-6 text-left sm:p-7 shadow-[0_10px_30px_-18px_rgba(16,24,40,.35)] backdrop-blur-xl"
           >
             <div className="flex items-center justify-between">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-ink text-[14px] font-semibold text-white">{m.mark}</span>
-              <span className="rounded-md bg-[#fdeee3] px-2 py-1 text-[9.5px] font-medium uppercase tracking-[0.12em] text-[#b0623a]">{m.role}</span>
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-ink text-[18px] font-semibold text-white">{m.mark}</span>
+              <span className="rounded-lg bg-[#fdeee3] px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-[#b0623a]">{m.role}</span>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="font-display text-[22px] leading-none">{m.name}</span>
-              <span className="text-[12px] text-muted">Gnani {m.name} {m.version}</span>
+            <div className="mt-5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+              <span className="font-display text-[32px] leading-none">{m.name}</span>
+              <span className="text-[14px] text-muted">Gnani {m.name} {m.version}</span>
             </div>
-            <div className="mt-1.5 text-[13.5px] text-ink-2">It {m.verb}.</div>
+            <div className="mt-2 text-[16px] text-ink-2">It {m.verb}.</div>
           </motion.div>
         ))}
       </div>
@@ -76,7 +76,7 @@ export default function Home() {
   return (
     <>
       <LightField className="pb-24 pt-36 sm:pt-44">
-        <div className="mx-auto flex max-w-5xl flex-col items-center px-5 text-center">
+        <div className="mx-auto flex max-w-6xl flex-col items-center px-5 text-center">
           <Reveal text="न्यायमित्र" className="font-deva text-[clamp(4rem,13vw,9.5rem)] leading-[0.95] text-ink" />
           <Reveal
             as="p"
