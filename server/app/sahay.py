@@ -9,7 +9,7 @@ import json
 import os
 
 from . import llm
-from .config import Keys, speech_style
+from .config import Keys, lang_info, speech_style
 
 with open(os.path.join(os.path.dirname(__file__), "knowledge", "routes.json"), encoding="utf-8") as f:
     ROUTES = json.load(f)
@@ -189,7 +189,9 @@ Fact keys must come from the needed list of the chosen issue. If you change issu
     msgs = [{"role": "system", "content": system}]
     for h in history[-8:]:
         msgs.append({"role": "assistant" if h["role"] == "sahay" else "user", "content": h["text"]})
-    msgs.append({"role": "user", "content": text})
+    # small models drift to Hinglish; restate the hard rules right next to the turn
+    script = "English" if lang == "en" else f"{lang_info(lang)['english']} written in its own script"
+    msgs.append({"role": "user", "content": f"{text}\n\n[Rules: the reply must be in {script}. Ask at most ONE question. Output JSON only.]"})
     out = await llm.chat(keys, msgs, max_tokens=350, temperature=0.3, want_json=True)
     return llm.parse_json(out)
 
