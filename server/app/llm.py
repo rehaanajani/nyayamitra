@@ -4,8 +4,8 @@ Two ways to reach it, first match wins:
 1. LLM_BASE_URL: any OpenAI-compatible server running Evon, e.g. llama.cpp
    on Kaggle's free T4s (deploy/kaggle-evon.ipynb) or vLLM on a rented GPU.
 2. HF_TOKEN: Evon on the free Hugging Face Space (see evon_space.py).
-If one is unreachable (a Kaggle session ended, the Space is out of quota),
-the next takes over, then BACKUP_LLM_* (e.g. Gemini) as the last resort.
+If one is unreachable the next takes over: Kaggle Evon, then BACKUP_LLM_*
+(Gemini), then the Evon Space.
 """
 
 import asyncio
@@ -14,9 +14,13 @@ import re
 import time
 
 import httpx
+import logging
 
 from . import evon_space
 from .config import Keys
+
+
+log = logging.getLogger("nyayamitra.llm")
 
 
 class NoLLM(Exception):
@@ -31,15 +35,18 @@ async def chat(keys: Keys, messages: list[dict], *, max_tokens: int = 300,
     if keys.llm_base and keys.llm_model:
         routes.append(lambda: _openai_chat(keys.llm_base, keys.llm_key, keys.llm_model,
                                            messages, max_tokens, temperature, want_json))
-    if keys.hf_token:
-        routes.append(lambda: _space_chat(keys.hf_token, messages, max_tokens))
+    # the backup answers in seconds; the free Space can stall for most of a minute
+    # once its daily quota is gone, so it goes last
     if keys.fb_base and keys.fb_model:
         routes.append(lambda: _openai_chat(keys.fb_base, keys.fb_key, keys.fb_model,
                                            messages, max_tokens, temperature, want_json))
+    if keys.hf_token:
+        routes.append(lambda: _space_chat(keys.hf_token, messages, max_tokens))
     for i, route in enumerate(routes):
         try:
             return await route()
-        except Exception:
+        except Exception as e:
+            log.warning("llm route %d failed: %s: %s", i, type(e).__name__, str(e)[:200])
             if i == len(routes) - 1:
                 raise
     raise NoLLM()
