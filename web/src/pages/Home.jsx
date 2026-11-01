@@ -4,12 +4,11 @@ import { FadeUp, LightField, Reveal, SectionLabel } from '../components/ui'
 import HowItWorks from '../components/HowItWorks'
 import Scene from '../components/Scene'
 
-// Gnani's own model cards use a black monogram tile, the version, and a small
-// peach role tag; we follow that rather than inventing colours per model.
+// Styled after Gnani's model cards: name, version and a small peach role tag.
 const MODELS = [
-  { mark: 'P', name: 'Prisma', version: 'v3.0', verb: 'listens', role: 'Speech to text' },
-  { mark: 'T', name: 'Timbre', version: 'v3.0', verb: 'speaks', role: 'Text to speech' },
-  { mark: 'E', name: 'Evon', version: 'v3.3', verb: 'reasons', role: 'Language model' },
+  { name: 'Prisma', version: 'v3.0', verb: 'listens', role: 'Speech to text' },
+  { name: 'Timbre', version: 'v3.0', verb: 'speaks', role: 'Text to speech' },
+  { name: 'Evon', version: 'v3.3', verb: 'reasons', role: 'Language model' },
 ]
 
 function ModelStrip() {
@@ -25,11 +24,8 @@ function ModelStrip() {
             transition={{ delay: 1.45 + i * 0.1, duration: 0.5 }}
             className="rounded-3xl border border-white/80 bg-white/60 p-6 text-left sm:p-7 shadow-[0_10px_30px_-18px_rgba(16,24,40,.35)] backdrop-blur-xl"
           >
-            <div className="flex items-center justify-between">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-ink text-[18px] font-semibold text-white">{m.mark}</span>
-              <span className="rounded-lg bg-[#fdeee3] px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-[#b0623a]">{m.role}</span>
-            </div>
-            <div className="mt-5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+            <span className="inline-block rounded-lg bg-[#fdeee3] px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-[#b0623a]">{m.role}</span>
+            <div className="mt-4 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
               <span className="font-display text-[32px] leading-none">{m.name}</span>
               <span className="text-[14px] text-muted">Gnani {m.name} {m.version}</span>
             </div>
