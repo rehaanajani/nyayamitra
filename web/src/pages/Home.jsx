@@ -43,7 +43,7 @@ export default function Home() {
           <Reveal
             as="p"
             text="A friend in court, whichever side of it you're on."
-            className="font-display mt-6 max-w-2xl text-[clamp(1.6rem,3.6vw,2.6rem)] leading-tight text-ink"
+            className="font-display mt-6 max-w-3xl text-balance text-[clamp(1.6rem,3.6vw,2.6rem)] leading-tight text-ink"
             delay={0.35}
           />
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9, duration: 0.8 }} className="mt-5 max-w-xl text-lg text-ink-2">
