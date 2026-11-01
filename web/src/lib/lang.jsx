@@ -14,6 +14,20 @@ export const LANGUAGES = [
   { code: 'pa', name: 'ਪੰਜਾਬੀ', english: 'Punjabi', voice: true },
 ]
 
+// Nav labels in each language: [help door, practice door, call to action]
+export const NAV = {
+  en: ['Get help', 'Practise', 'Get help'],
+  hi: ['सहाय', 'अभ्यास', 'मदद लें'],
+  bn: ['সহায়তা', 'অনুশীলন', 'সাহায্য নিন'],
+  mr: ['मदत', 'सराव', 'मदत घ्या'],
+  te: ['సహాయం', 'అభ్యాసం', 'సహాయం పొందండి'],
+  ta: ['உதவி', 'பயிற்சி', 'உதவி பெறுங்கள்'],
+  gu: ['મદદ', 'અભ્યાસ', 'મદદ મેળવો'],
+  kn: ['ಸಹಾಯ', 'ಅಭ್ಯಾಸ', 'ಸಹಾಯ ಪಡೆಯಿರಿ'],
+  ml: ['സഹായം', 'പരിശീലനം', 'സഹായം നേടുക'],
+  pa: ['ਮਦਦ', 'ਅਭਿਆਸ', 'ਮਦਦ ਲਓ'],
+}
+
 export const langInfo = (code) => LANGUAGES.find((l) => l.code === code) || LANGUAGES[1]
 
 const STORE = 'nm_lang'
