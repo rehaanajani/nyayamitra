@@ -5,7 +5,7 @@ Docs: https://docs.gnani.ai — base URL api.vachana.ai, auth header X-API-Key-I
 
 import httpx
 
-from .config import GNANI_BASE, GNANI_WS_BASE, LANGS, STT_FORMAT
+from .config import GNANI_BASE, GNANI_WS_BASE, STT_FORMAT, lang_info
 
 STT_MODEL = "prisma-v3.0"
 TTS_MODEL = "timbre-v3.0"
@@ -21,7 +21,7 @@ async def synthesize(text: str, lang: str, voice: str, key: str, sample_rate: in
         "text": text,
         "model": TTS_MODEL,
         "voice": voice,
-        "language": LANGS.get(lang, LANGS["en"])["tts"],
+        "language": lang_info(lang).get("tts", "en-IN"),
         "speed": 1.0,
         "audio_config": {
             "sample_rate": sample_rate,
@@ -46,7 +46,7 @@ async def transcribe_file(audio: bytes, filename: str, lang: str, key: str) -> d
     """Prisma REST, clips up to 30 s."""
     data = {
         "model": STT_MODEL,
-        "language_code": LANGS.get(lang, LANGS["en"])["stt"],
+        "language_code": lang_info(lang).get("stt", "en-IN"),
         "format": STT_FORMAT,
     }
     async with httpx.AsyncClient(timeout=30) as client:
@@ -74,7 +74,7 @@ def stream_headers(lang: str, key: str, sample_rate: int = 16000) -> dict:
     return {
         "x-api-key-id": key,
         "model": STT_MODEL,
-        "language_code": LANGS.get(lang, LANGS["en"])["stream"],
+        "language_code": lang_info(lang).get("stream", "en-IN"),
         "format": STT_FORMAT,
         "x-partials": "true",
         "x-sample-rate": str(sample_rate),
