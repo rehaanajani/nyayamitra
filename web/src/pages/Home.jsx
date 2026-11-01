@@ -2,6 +2,7 @@ import { motion } from 'motion/react'
 import { ArrowRight, AudioLines, Gavel, PhoneCall, ScrollText, ShieldCheck } from 'lucide-react'
 import { FadeUp, LightField, Reveal, SectionLabel } from '../components/ui'
 import HowItWorks from '../components/HowItWorks'
+import Scene from '../components/Scene'
 
 const DOORS = [
   {
@@ -13,6 +14,7 @@ const DOORS = [
     points: ['Asks you one thing at a time', 'Where to go, what to carry, the deadline', 'Drafts your notice or complaint', 'Free legal aid, 15100'],
     icon: PhoneCall,
     tint: 'from-cyan/70 via-white to-lav/80',
+    scene: 'scene-sahay', pos: '62% 40%', alt: 'A woman at home by a window, calling for help on her phone',
   },
   {
     href: '#/abhyas',
@@ -23,6 +25,7 @@ const DOORS = [
     points: ['Judge interrupts mid-argument', 'Catches repealed IPC/CrPC citations', 'Opposing counsel rebuts you', 'Scorecard after every round'],
     icon: Gavel,
     tint: 'from-lav/80 via-white to-peach/80',
+    scene: 'scene-court', pos: '55% 42%', alt: 'A judge on the bench speaking to a young advocate at the lectern',
   },
 ]
 
@@ -60,9 +63,13 @@ export default function Home() {
       <section className="mx-auto -mt-10 grid max-w-6xl gap-5 px-5 md:grid-cols-2">
         {DOORS.map((d, i) => (
           <FadeUp key={d.href} delay={i * 0.1}>
-            <a href={d.href} className="group card relative block h-full overflow-hidden p-8 transition hover:-translate-y-1">
-              <div className={`absolute inset-0 bg-gradient-to-br ${d.tint} opacity-0 transition duration-500 group-hover:opacity-100`} />
-              <div className="relative">
+            <a href={d.href} className="group card relative block h-full overflow-hidden transition hover:-translate-y-1">
+              <div className="relative h-56 overflow-hidden">
+                <Scene name={d.scene} alt={d.alt} position={d.pos} sizes="(max-width: 768px) 100vw, 640px" className="transition duration-700 group-hover:scale-[1.04]" />
+                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white/90 to-transparent" />
+              </div>
+              <div className={`absolute inset-x-0 bottom-0 top-56 bg-gradient-to-br ${d.tint} opacity-0 transition duration-500 group-hover:opacity-100`} />
+              <div className="relative p-8 pt-4">
                 <div className="flex items-center justify-between">
                   <SectionLabel>{d.who}</SectionLabel>
                   <div className="grid h-11 w-11 place-items-center rounded-full bg-ink text-white transition group-hover:rotate-[-8deg]"><d.icon size={18} /></div>
@@ -84,6 +91,20 @@ export default function Home() {
             </a>
           </FadeUp>
         ))}
+      </section>
+
+      <section className="mx-auto max-w-[1360px] px-3 pt-24 sm:px-5">
+        <FadeUp>
+          <div className="relative h-[420px] overflow-hidden rounded-[32px] sm:h-[520px]">
+            <Scene name="scene-journey" alt="A woman and her advocate in a black coat walking up the steps of a district court" position="58% 55%" sizes="100vw" />
+            <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/40 to-transparent" />
+            <div className="absolute left-6 top-1/2 max-w-md -translate-y-1/2 sm:left-14">
+              <SectionLabel>One case, both doors</SectionLabel>
+              <h2 className="font-display mt-3 text-[clamp(2rem,4vw,3.2rem)] leading-tight">She finds her way. He finds his voice.</h2>
+              <p className="mt-4 text-ink-2">The problem Meena describes on सहाय becomes the matter her legal-aid advocate practises on अभ्यास, so both walk into court ready.</p>
+            </div>
+          </div>
+        </FadeUp>
       </section>
 
       <HowItWorks />
