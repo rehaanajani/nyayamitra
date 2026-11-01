@@ -1,46 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { ArrowUpRight } from 'lucide-react'
+import Mitra from './Mitra'
 
-/** Peeking character for the footer card; its eyes follow the cursor.
- *  Placeholder until the mascot is designed. */
+/** Mitra peeks over the bottom edge of the footer card. */
 function Peeker() {
-  const ref = useRef(null)
-  const [eye, setEye] = useState({ x: 0, y: 0 })
-
-  useEffect(() => {
-    const on = (e) => {
-      const r = ref.current?.getBoundingClientRect()
-      if (!r) return
-      const dx = e.clientX - (r.left + r.width / 2)
-      const dy = e.clientY - (r.top + r.height / 3)
-      const d = Math.hypot(dx, dy) || 1
-      setEye({ x: (dx / d) * Math.min(7, d / 40), y: (dy / d) * Math.min(6, d / 40) })
-    }
-    window.addEventListener('pointermove', on)
-    return () => window.removeEventListener('pointermove', on)
-  }, [])
-
   return (
-    <motion.div
-      ref={ref}
-      className="absolute bottom-0 left-1/2 h-36 w-52 -translate-x-1/2 sm:h-44 sm:w-64"
-      initial={{ y: 60 }}
-      whileInView={{ y: 0 }}
-      viewport={{ once: true }}
-      transition={{ type: 'spring', bounce: 0.35, duration: 1 }}
-    >
-      <div className="absolute inset-0 rounded-t-full bg-white shadow-[inset_0_-20px_40px_rgba(137,129,241,.15)]" />
-      {[-1, 1].map((s) => (
-        <div key={s} className="absolute top-[34%] h-12 w-9 rounded-full bg-ink sm:h-14 sm:w-10" style={{ left: `calc(50% + ${s * 34}px - 18px)` }}>
-          <motion.div className="absolute left-1/2 top-1/3 h-3 w-3 rounded-full bg-white" animate={{ x: eye.x - 6, y: eye.y }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} />
-        </div>
-      ))}
-      <div className="absolute left-1/2 top-[66%] h-3 w-8 -translate-x-1/2 rounded-b-full border-b-[3px] border-ink" />
-      <motion.div className="absolute -right-16 top-10 rounded-full rounded-bl-sm bg-ink px-3 py-1.5 text-sm text-white" animate={{ rotate: [-4, 4, -4] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}>
-        <span className="font-deva">नमस्ते!</span>
-      </motion.div>
-    </motion.div>
+    <div className="absolute bottom-0 left-1/2 w-[230px] -translate-x-1/2 sm:w-[280px]">
+      <div className="relative">
+        <Mitra width="100%" />
+        <motion.div className="absolute -right-24 top-4 whitespace-nowrap rounded-full rounded-bl-sm bg-ink px-3 py-1.5 text-sm text-white" animate={{ rotate: [-3, 3, -3] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}>
+          <span className="font-deva">नमस्ते, मैं मित्र!</span>
+        </motion.div>
+      </div>
+    </div>
   )
 }
 
@@ -62,10 +34,10 @@ const COLUMNS = [
 export default function Footer() {
   return (
     <footer className="px-3 pb-3 pt-44 sm:px-5 sm:pb-5">
-      <div className="relative mx-auto max-w-[1360px] rounded-[32px] bg-ink px-6 pb-8 pt-56 text-white sm:rounded-[44px] sm:px-12 sm:pt-64">
+      <div className="relative mx-auto max-w-[1360px] rounded-[32px] bg-ink px-6 pb-8 pt-64 text-white sm:rounded-[44px] sm:px-12 sm:pt-[19rem]">
         <div className="absolute inset-x-4 -top-32 mx-auto max-w-4xl overflow-hidden rounded-[32px] wash shadow-[0_30px_60px_-20px_rgba(11,11,15,.45)] sm:inset-x-10 sm:-top-36 sm:rounded-[44px]">
           <div className="rays absolute -inset-[40%] opacity-70" />
-          <div className="relative flex h-80 flex-col items-center px-6 pt-9 text-center sm:h-[22rem] sm:pt-10">
+          <div className="relative flex h-[22rem] flex-col items-center px-6 pt-8 text-center sm:h-[25rem] sm:pt-9">
             <div className="font-deva text-4xl text-ink sm:text-6xl">न्याय सबका है।</div>
             <div className="font-display mt-2 text-lg text-ink-2 sm:text-2xl">Justice should speak your language.</div>
           </div>
