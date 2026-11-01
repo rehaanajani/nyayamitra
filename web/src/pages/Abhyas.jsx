@@ -3,7 +3,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import { ArrowLeft, Gavel, Mic, MicOff, Plus, Send, Square, Timer } from 'lucide-react'
 import { api } from '../lib/api'
 import useVoice from '../lib/useVoice'
-import { FadeUp, LangPicker, LightField, Orb, Reveal, SectionLabel } from '../components/ui'
+import { FadeUp, LightField, Orb, Reveal, SectionLabel } from '../components/ui'
+import LanguageMenu from '../components/LanguageMenu'
+import { langInfo, useLang } from '../lib/lang'
 import Transcript from '../components/Transcript'
 import Nirnay from '../components/Nirnay'
 
@@ -13,7 +15,6 @@ const TEMPERAMENTS = [
   { id: 'strict', label: 'Hostile', deva: 'कठोर' },
 ]
 
-const LANG_BADGE = { hi: 'हिंदी', ta: 'தமிழ்', en: 'English' }
 
 function CasePicker({ onPick, preselect }) {
   const [cases, setCases] = useState([])
@@ -47,7 +48,7 @@ function CasePicker({ onPick, preselect }) {
           <FadeUp key={c.id} delay={i * 0.06}>
             <button onClick={() => onPick(c)} className="group card flex h-full w-full flex-col p-6 text-left transition hover:-translate-y-1">
               <div className="flex items-center gap-2">
-                <span className="chip">{LANG_BADGE[c.language] || c.language}</span>
+                <span className="chip">{langInfo(c.language).name}</span>
                 {c.custom && <span className="chip">Your case</span>}
                 <Gavel size={18} className="ml-auto text-muted transition group-hover:rotate-[-20deg] group-hover:text-ink" />
               </div>
@@ -81,6 +82,7 @@ function Court({ matter, lang, temperament, status, onExit }) {
   const itemsRef = useRef(items)
   itemsRef.current = items
   const interjecting = useRef(false)
+  const canTalk = status.gnani && langInfo(lang).voice
 
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => s + 1), 1000)
@@ -88,7 +90,7 @@ function Court({ matter, lang, temperament, status, onExit }) {
   }, [])
 
   function speak(text, role) {
-    if (status.gnani) voice.say(text, { lang, role })
+    if (canTalk) voice.say(text, { lang, role })
   }
 
   async function onTurn(userText) {
@@ -119,7 +121,7 @@ function Court({ matter, lang, temperament, status, onExit }) {
   useEffect(() => {
     api(`/api/abhyas/opening?lang=${lang}`).then(async (o) => {
       setItems([{ role: 'judge', text: o.text }])
-      if (status.gnani) { await voice.start(); speak(o.text, 'judge') }
+      if (canTalk) { await voice.start(); speak(o.text, 'judge') }
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -156,7 +158,7 @@ function Court({ matter, lang, temperament, status, onExit }) {
             {voice.listening ? (
               <button className="pill pill-light" onClick={voice.stop}><MicOff size={16} /> Mute</button>
             ) : (
-              <button className="pill pill-light" onClick={voice.start} disabled={!status.gnani}><Mic size={16} /> Mic</button>
+              <button className="pill pill-light" onClick={voice.start} disabled={!canTalk}><Mic size={16} /> Mic</button>
             )}
             <button className="pill pill-dark" onClick={end} disabled={ending}><Square size={14} /> {ending ? 'Judging…' : 'End hearing'}</button>
           </div>
@@ -179,11 +181,11 @@ function Court({ matter, lang, temperament, status, onExit }) {
 
 export default function Abhyas({ status, params }) {
   const [matter, setMatter] = useState(null)
-  const [lang, setLang] = useState('hi')
+  const [lang] = useLang()
   const [temperament, setTemperament] = useState('fair')
   const [inCourt, setInCourt] = useState(false)
 
-  function pick(c) { setMatter(c); setLang(c.language || 'hi') }
+  function pick(c) { setMatter(c) }
 
   return (
     <div>
@@ -209,7 +211,7 @@ export default function Abhyas({ status, params }) {
               <div className="mt-6 grid gap-6 sm:grid-cols-2">
                 <div>
                   <SectionLabel>Language of the court</SectionLabel>
-                  <div className="mt-3"><LangPicker value={lang} onChange={setLang} compact /></div>
+                  <div className="mt-2 -ml-3"><LanguageMenu align="left" /></div>
                 </div>
                 <div>
                   <SectionLabel>The bench</SectionLabel>

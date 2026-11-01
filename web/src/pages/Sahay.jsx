@@ -3,7 +3,9 @@ import { motion } from 'motion/react'
 import { Mic, MicOff, RotateCcw, Send } from 'lucide-react'
 import { api } from '../lib/api'
 import useVoice from '../lib/useVoice'
-import { LangPicker, LightField, Orb, Reveal } from '../components/ui'
+import { LightField, Orb, Reveal } from '../components/ui'
+import LanguageMenu from '../components/LanguageMenu'
+import { langInfo, useLang } from '../lib/lang'
 import Transcript from '../components/Transcript'
 import MargCard from '../components/MargCard'
 
@@ -20,7 +22,8 @@ const ORB_LABEL = {
 }
 
 export default function Sahay({ status }) {
-  const [lang, setLang] = useState('hi')
+  const [lang] = useLang()
+  const canTalk = status.gnani && langInfo(lang).voice
   const [items, setItems] = useState([])
   const [state, setState] = useState({})
   const [card, setCard] = useState(null)
@@ -43,7 +46,7 @@ export default function Sahay({ status }) {
         setCard({ ...r.card, factMap: r.state.facts })
         setTimeout(() => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
       }
-      if (status.gnani) voice.say(r.reply, { lang, role: 'sahay' })
+      if (canTalk) voice.say(r.reply, { lang, role: 'sahay' })
     } catch (e) {
       voice.setError(e.message)
     } finally {
@@ -56,7 +59,7 @@ export default function Sahay({ status }) {
   async function begin() {
     const g = await api(`/api/sahay/greeting?lang=${lang}`)
     setItems([{ role: 'sahay', text: g.reply }])
-    if (status.gnani) {
+    if (canTalk) {
       await voice.start()
       voice.say(g.reply, { lang, role: 'sahay' })
     }
@@ -88,22 +91,22 @@ export default function Sahay({ status }) {
           <div className="flex flex-col items-center text-center">
             <Reveal text="सहाय" className="font-deva text-7xl leading-none sm:text-8xl" />
             <p className="font-display mt-4 text-2xl text-ink-2 sm:text-3xl">Tell me what happened. In your words, in your language.</p>
-            <div className="mt-6"><LangPicker value={lang} onChange={setLang} /></div>
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-line bg-white/80 py-1 pl-4 pr-1 text-sm text-ink-2">Speaking in <LanguageMenu align="left" /></div>
           </div>
 
           <div className="mt-10 grid items-start gap-8 lg:grid-cols-[320px_1fr]">
             <div className="flex flex-col items-center gap-5">
-              <Orb level={orbLevel} active={voice.listening || voice.speaking} size={240} label={voice.speaking ? ORB_LABEL[lang][0] : voice.listening ? ORB_LABEL[lang][1] : ''} />
-              {!status.gnani && (
-                <span className="chip !py-1.5">Voice is off · typing works</span>
+              <Orb level={orbLevel} active={voice.listening || voice.speaking} size={240} label={voice.speaking ? (ORB_LABEL[lang] || ORB_LABEL.en)[0] : voice.listening ? (ORB_LABEL[lang] || ORB_LABEL.en)[1] : ''} />
+              {!canTalk && (
+                <span className="chip !py-1.5">{status.gnani ? `Voice isn't available in ${langInfo(lang).english} yet · type below` : 'Voice is off · typing works'}</span>
               )}
               <div className="flex gap-3">
                 {!started ? (
-                  <button className="pill pill-dark" onClick={begin} disabled={!status.gnani}><Mic size={16} /> Start talking</button>
+                  <button className="pill pill-dark" onClick={begin} disabled={!canTalk}><Mic size={16} /> Start talking</button>
                 ) : voice.listening ? (
                   <button className="pill pill-dark" onClick={voice.stop}><MicOff size={16} /> Stop mic</button>
                 ) : (
-                  <button className="pill pill-dark" onClick={voice.start} disabled={!status.gnani}><Mic size={16} /> Resume mic</button>
+                  <button className="pill pill-dark" onClick={voice.start} disabled={!canTalk}><Mic size={16} /> Resume mic</button>
                 )}
                 {started && <button className="pill pill-light" onClick={reset}><RotateCcw size={16} /> New</button>}
               </div>
@@ -115,7 +118,7 @@ export default function Sahay({ status }) {
               {!started ? (
                 <div className="flex flex-1 flex-col justify-center gap-3 p-4">
                   <div className="text-sm text-muted">Try saying or typing:</div>
-                  {EXAMPLES[lang].map((e) => (
+                  {(EXAMPLES[lang] || EXAMPLES.en).map((e) => (
                     <button key={e} onClick={() => sendText(e)} className="rounded-2xl border border-line bg-white px-4 py-3 text-left transition hover:border-ink">{e}</button>
                   ))}
                 </div>

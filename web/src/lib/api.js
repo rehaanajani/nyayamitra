@@ -16,9 +16,3 @@ export async function api(path, body, opts = {}) {
   }
   return opts.raw ? res : res.json()
 }
-
-export const LANGS = [
-  { id: 'hi', label: 'हिंदी', sub: 'Hindi · Hinglish' },
-  { id: 'ta', label: 'தமிழ்', sub: 'Tamil · Tanglish' },
-  { id: 'en', label: 'English', sub: 'Indian English' },
-]

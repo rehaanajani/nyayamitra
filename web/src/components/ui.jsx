@@ -1,5 +1,4 @@
 import { motion } from 'motion/react'
-import { LANGS } from '../lib/api'
 
 /** Gnani-style headline: words rise in one by one out of a soft blur. */
 export function Reveal({ text, as: Tag = 'h1', className = '', delay = 0, stagger = 0.06 }) {
@@ -70,25 +69,6 @@ export function Orb({ level = 0, active = false, tone = 'calm', size = 220, labe
       />
       <div className="absolute rounded-full bg-white/55 backdrop-blur-md" style={{ inset: size * 0.3 }} />
       {label && <span className="relative font-deva text-2xl text-ink/80">{label}</span>}
-    </div>
-  )
-}
-
-export function LangPicker({ value, onChange, compact = false }) {
-  return (
-    <div className="inline-flex rounded-full border border-line bg-white p-1">
-      {LANGS.map((l) => (
-        <button
-          key={l.id}
-          onClick={() => onChange(l.id)}
-          className={`relative rounded-full px-4 py-1.5 text-sm transition ${value === l.id ? 'text-white' : 'text-ink-2 hover:text-ink'}`}
-        >
-          {value === l.id && (
-            <motion.span layoutId={compact ? 'lang-c' : 'lang'} className="absolute inset-0 rounded-full bg-ink" transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }} />
-          )}
-          <span className="relative">{l.label}</span>
-        </button>
-      ))}
     </div>
   )
 }
