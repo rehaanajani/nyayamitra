@@ -3,7 +3,9 @@ import { motion } from 'motion/react'
 import { Mic, MicOff, RotateCcw, Send } from 'lucide-react'
 import { api } from '../lib/api'
 import useVoice from '../lib/useVoice'
-import { LightField, Orb, Reveal } from '../components/ui'
+import { LightField, Reveal } from '../components/ui'
+import Mitra from '../components/Mitra'
+import { motion as m } from 'motion/react'
 import LanguageMenu from '../components/LanguageMenu'
 import { langInfo, useLang } from '../lib/lang'
 import Transcript from '../components/Transcript'
@@ -96,7 +98,20 @@ export default function Sahay({ status }) {
 
           <div className="mt-10 grid items-start gap-8 lg:grid-cols-[320px_1fr]">
             <div className="flex flex-col items-center gap-5">
-              <Orb level={orbLevel} active={voice.listening || voice.speaking} size={240} label={voice.speaking ? (ORB_LABEL[lang] || ORB_LABEL.en)[0] : voice.listening ? (ORB_LABEL[lang] || ORB_LABEL.en)[1] : ''} />
+              <div className="relative grid w-[260px] place-items-center pt-4">
+                <m.div
+                  className="absolute bottom-6 h-44 w-44 rounded-full blur-2xl"
+                  style={{ background: 'conic-gradient(from 90deg, #a2ebfc, #e2e0fb, #ffd3b7, #bdb9f7, #a2ebfc)' }}
+                  animate={{ scale: 1 + orbLevel * 0.5, opacity: voice.listening || voice.speaking ? 0.9 : 0.55 }}
+                  transition={{ duration: 0.15 }}
+                />
+                <div className="relative" style={{ WebkitMaskImage: 'linear-gradient(to bottom, #000 72%, transparent 100%)', maskImage: 'linear-gradient(to bottom, #000 72%, transparent 100%)' }}>
+                  <Mitra width={230} talking={voice.speaking} level={voice.outLevel} listening={voice.listening && !voice.speaking} />
+                </div>
+                <div className="relative -mt-1 h-5 text-sm text-muted">
+                  {voice.speaking ? (ORB_LABEL[lang] || ORB_LABEL.en)[0] : voice.listening ? (ORB_LABEL[lang] || ORB_LABEL.en)[1] : ''}
+                </div>
+              </div>
               {!canTalk && (
                 <span className="chip !py-1.5">{status.gnani ? `Voice isn't available in ${langInfo(lang).english} yet · type below` : 'Voice is off · typing works'}</span>
               )}
