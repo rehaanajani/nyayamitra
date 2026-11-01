@@ -48,7 +48,7 @@ function Eye({ cx, cy, look, blink }) {
   )
 }
 
-export default function Mitra({ width = 260, className = '' }) {
+export default function Mitra({ width = 260, className = '', talking = false, level = 0, listening = false }) {
   const ref = useRef(null)
   const [look, setLook] = useState({ x: 0, y: 0 })
   const [blink, setBlink] = useState(false)
@@ -112,8 +112,10 @@ export default function Mitra({ width = 260, className = '' }) {
       <path d="M40 262 L40 140 C40 70 92 22 150 22 C208 22 260 70 260 140 L260 262" fill="none" stroke="#dcdef0" strokeWidth="2" />
 
       {/* brows */}
-      <path d="M94 72 Q114 63 134 71" fill="none" stroke="#3a3a46" strokeWidth="3.2" strokeLinecap="round" />
-      <path d="M166 71 Q186 63 206 72" fill="none" stroke="#3a3a46" strokeWidth="3.2" strokeLinecap="round" />
+      <motion.g animate={{ y: listening ? -5 : 0 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+        <path d="M94 72 Q114 63 134 71" fill="none" stroke="#3a3a46" strokeWidth="3.2" strokeLinecap="round" />
+        <path d="M166 71 Q186 63 206 72" fill="none" stroke="#3a3a46" strokeWidth="3.2" strokeLinecap="round" />
+      </motion.g>
 
       <Eye cx={115} cy={108} look={look} blink={blink} />
       <Eye cx={185} cy={108} look={look} blink={blink} />
@@ -121,7 +123,15 @@ export default function Mitra({ width = 260, className = '' }) {
       {/* cheeks and smile */}
       <ellipse cx="90" cy="146" rx="13" ry="7.5" fill="#ffc4a8" opacity=".55" />
       <ellipse cx="210" cy="146" rx="13" ry="7.5" fill="#ffc4a8" opacity=".55" />
-      <path d="M139 150 Q150 160 161 150" fill="none" stroke="#2b2b35" strokeWidth="3" strokeLinecap="round" />
+      {talking ? (
+        // mouth opens with the voice level while Timbre speaks
+        <g>
+          <ellipse cx="150" cy="153" rx={9 + level * 3} ry={3 + Math.min(1, level * 1.6) * 8} fill="#3b2230" />
+          <ellipse cx="150" cy={156 + Math.min(1, level * 1.6) * 4} rx={5 + level * 2} ry={1.5 + Math.min(1, level * 1.6) * 3} fill="#ff8f8f" opacity=".8" />
+        </g>
+      ) : (
+        <path d="M139 150 Q150 160 161 150" fill="none" stroke="#2b2b35" strokeWidth="3" strokeLinecap="round" />
+      )}
 
       {/* advocate's coat */}
       <path d="M40 262 L40 196 C66 176 104 170 133 178 L150 236 L150 262 Z" fill="url(#mitra-coat)" />
