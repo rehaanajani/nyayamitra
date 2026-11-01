@@ -59,11 +59,11 @@ export default function App() {
             <span className="font-deva text-[26px] leading-none">न्यायमित्र</span>
           </a>
 
-          <nav className="mx-auto hidden items-center gap-1 rounded-full bg-canvas/80 p-1 md:flex">
+          <nav className="mx-auto hidden items-center gap-1 rounded-full border border-white/80 bg-white/60 p-1 shadow-[0_6px_20px_-12px_rgba(16,24,40,.25)] backdrop-blur-xl md:flex">
             {LINKS.map(([href, id, deva, en]) => (
-              <a key={id} href={href} className={`relative rounded-full px-5 py-2 text-sm transition ${page === id ? 'text-white' : 'text-ink-2 hover:text-ink'}`}>
+              <a key={id} href={href} className={`relative rounded-full px-5 py-2 text-[15px] transition ${page === id ? 'text-white' : 'text-ink hover:bg-white/80'}`}>
                 {page === id && <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-full bg-ink" transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }} />}
-                <span className="relative"><span className="font-deva text-[15px]">{deva}</span> <span className="opacity-60">· {en}</span></span>
+                <span className="relative"><span className="font-deva text-[16px] font-medium">{deva}</span> <span className={page === id ? 'opacity-70' : 'text-ink-2'}>· {en}</span></span>
               </a>
             ))}
           </nav>
