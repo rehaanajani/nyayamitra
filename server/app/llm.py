@@ -133,6 +133,10 @@ async def _vertex_chat(base: str, key: str, model: str, messages: list[dict], ma
     url = f"{base}/publishers/google/models/{model.removeprefix('google/')}:generateContent"
     async with httpx.AsyncClient(timeout=45) as client:
         r = await client.post(url, json=body, headers={"x-goog-api-key": key})
+        if r.status_code == 400 and "thinking" in r.text.lower():
+            # newer Gemini generations take a different thinking control; use the default
+            body["generationConfig"].pop("thinkingConfig")
+            r = await client.post(url, json=body, headers={"x-goog-api-key": key})
     if r.status_code != 200:
         raise RuntimeError(f"Vertex {r.status_code}: {r.text[:300]}")
     parts = r.json()["candidates"][0].get("content", {}).get("parts", [])
