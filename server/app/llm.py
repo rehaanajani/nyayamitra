@@ -1,7 +1,9 @@
-"""OpenAI-compatible chat client.
+"""Chat client for Gnani Evon.
 
-Point it at Gnani Evon served by vLLM/SGLang (`vllm serve gnani/gnani-evon-v3.3-30B-A3B --served-model-name evon ...`),
-or any OpenAI-compatible provider while Evon is not hosted yet.
+Two ways to reach it, first match wins:
+1. LLM_BASE_URL: any OpenAI-compatible server, e.g. Evon on vLLM
+   (`vllm serve gnani/gnani-evon-v3.3-30B-A3B --served-model-name evon ...`).
+2. HF_TOKEN: Evon on the free Hugging Face Space (see evon_space.py).
 """
 
 import json
@@ -9,6 +11,7 @@ import re
 
 import httpx
 
+from . import evon_space
 from .config import Keys
 
 
@@ -20,6 +23,9 @@ async def chat(keys: Keys, messages: list[dict], *, max_tokens: int = 300,
                temperature: float = 0.5, want_json: bool = False) -> str:
     if not keys.has_llm:
         raise NoLLM()
+    if not (keys.llm_base and keys.llm_model):
+        out = await evon_space.chat(keys.hf_token, messages, max_tokens)
+        return re.sub(r"<think>.*?</think>", "", out, flags=re.S).strip()
     body: dict = {
         "model": keys.llm_model,
         "messages": messages,
