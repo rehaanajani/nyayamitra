@@ -1,12 +1,36 @@
 {
   "_note": "Vetted path cards for सहाय. The LLM only classifies the problem and collects facts; everything shown to the user as law comes from this file. Every route has reviewed:false until a law faculty member or advocate signs off. Legal information, not legal advice.",
   "helplines": [
-    { "id": "emergency", "label": "Emergency (police, ambulance, fire)", "number": "112" },
-    { "id": "women", "label": "Women helpline", "number": "181" },
-    { "id": "child", "label": "Childline", "number": "1098" },
-    { "id": "legal_aid", "label": "NALSA free legal aid", "number": "15100" },
-    { "id": "cyber", "label": "Cyber fraud (report within hours)", "number": "1930" },
-    { "id": "consumer", "label": "National Consumer Helpline", "number": "1915" }
+    {
+      "id": "emergency",
+      "label": "Emergency (police, ambulance, fire)",
+      "number": "112"
+    },
+    {
+      "id": "women",
+      "label": "Women helpline",
+      "number": "181"
+    },
+    {
+      "id": "child",
+      "label": "Childline",
+      "number": "1098"
+    },
+    {
+      "id": "legal_aid",
+      "label": "NALSA free legal aid",
+      "number": "15100"
+    },
+    {
+      "id": "cyber",
+      "label": "Cyber fraud (report within hours)",
+      "number": "1930"
+    },
+    {
+      "id": "consumer",
+      "label": "National Consumer Helpline",
+      "number": "1915"
+    }
   ],
   "legal_aid": {
     "title": "Free lawyer from the District Legal Services Authority (DLSA)",
@@ -16,12 +40,42 @@
     {
       "id": "salary",
       "title": "Salary or wages not paid",
-      "keywords": ["salary", "wages", "tankhwah", "pagar", "payment nahi", "सैलरी", "वेतन", "தனக்கு சம்பளம்", "சம்பளம்"],
+      "keywords": [
+        "salary",
+        "wages",
+        "tankhwah",
+        "pagar",
+        "payment nahi",
+        "सैलरी",
+        "वेतन",
+        "தனக்கு சம்பளம்",
+        "சம்பளம்"
+      ],
       "ask": [
-        { "key": "employer", "q": "Who is the employer: a company, shop, contractor or person?" },
-        { "key": "months", "q": "For how many months is the salary pending, and roughly how much in total?" },
-        { "key": "proof", "q": "Do you have any proof: offer letter, salary slips, bank credits, WhatsApp messages or an attendance record?" },
-        { "key": "still_working", "q": "Are you still working there, or did you leave or get removed?" }
+        {
+          "key": "employer",
+          "q": "Who is the employer: a company, shop, contractor or person?",
+          "q_hi": "नौकरी कहाँ थी: किसी company में, दुकान पर, contractor के पास या किसी व्यक्ति के यहाँ?",
+          "q_ta": "எங்கு வேலை செய்தீர்கள்: company, கடை, contractor அல்லது ஒரு நபரிடமா?"
+        },
+        {
+          "key": "months",
+          "q": "For how many months is the salary pending, and roughly how much in total?",
+          "q_hi": "कितने महीने की salary बाकी है, और कुल कितने पैसे बनते हैं?",
+          "q_ta": "எத்தனை மாத salary நிலுவையில் உள்ளது, மொத்தம் எவ்வளவு?"
+        },
+        {
+          "key": "proof",
+          "q": "Do you have any proof: offer letter, salary slips, bank credits, WhatsApp messages or an attendance record?",
+          "q_hi": "कोई proof है? Offer letter, salary slip, bank में पैसे आने का record, WhatsApp messages या attendance?",
+          "q_ta": "ஏதாவது proof உள்ளதா? Offer letter, salary slip, bank credit, WhatsApp messages அல்லது attendance?"
+        },
+        {
+          "key": "still_working",
+          "q": "Are you still working there, or did you leave or get removed?",
+          "q_hi": "क्या आप अभी भी वहाँ काम कर रहे हैं, या छोड़ दिया या निकाल दिया गया?",
+          "q_ta": "இன்னும் அங்கே வேலை செய்கிறீர்களா, அல்லது விலகிவிட்டீர்களா அல்லது நீக்கப்பட்டீர்களா?"
+        }
       ],
       "forum": "Labour Department of your district (Inspector-cum-Facilitator / Labour Commissioner)",
       "steps": [
@@ -30,7 +84,12 @@
         "File a wage claim with the Labour Department of your district. Many states accept it online, and the Shram Suvidha or Samadhan portals cover central-sphere establishments.",
         "If the employer still does not pay, a civil suit for recovery of money is possible. Ask the DLSA for a free lawyer first."
       ],
-      "documents": ["Offer or appointment letter", "Salary slips or bank statements showing past credits", "Attendance proof or ID card", "Messages with the employer about the payment"],
+      "documents": [
+        "Offer or appointment letter",
+        "Salary slips or bank statements showing past credits",
+        "Attendance proof or ID card",
+        "Messages with the employer about the payment"
+      ],
       "deadline": "Act quickly. Wage claims have a time limit under the Code on Wages, 2019, and money recovery suits generally have three years under the Limitation Act. Verify your exact deadline with the DLSA.",
       "cost": "A Labour Department complaint is usually free. You do not need a lawyer to file it.",
       "draft": "legal_notice_salary",
@@ -40,12 +99,43 @@
     {
       "id": "deposit",
       "title": "Landlord not returning security deposit",
-      "keywords": ["deposit", "landlord", "rent", "makan malik", "advance", "kiraya", "मकान मालिक", "किराया", "வாடகை", "முன்பணம்"],
+      "keywords": [
+        "deposit",
+        "landlord",
+        "rent",
+        "makan malik",
+        "advance",
+        "kiraya",
+        "मकान मालिक",
+        "किराया",
+        "வாடகை",
+        "முன்பணம்"
+      ],
       "ask": [
-        { "key": "amount", "q": "How much was the deposit, and when did you move out?" },
-        { "key": "agreement", "q": "Was there a written rent agreement, and was it registered?" },
-        { "key": "reason", "q": "What reason is the landlord giving, if any: damage, unpaid bills, or no reply?" },
-        { "key": "proof", "q": "Do you have proof of paying the deposit: bank transfer, receipt or messages?" }
+        {
+          "key": "amount",
+          "q": "How much was the deposit, and when did you move out?",
+          "q_hi": "Deposit कितना था, और आपने घर कब खाली किया?",
+          "q_ta": "Deposit எவ்வளவு, எப்போது வீட்டை காலி செய்தீர்கள்?"
+        },
+        {
+          "key": "agreement",
+          "q": "Was there a written rent agreement, and was it registered?",
+          "q_hi": "क्या लिखित rent agreement था? Registered था?",
+          "q_ta": "எழுத்துப்பூர்வ rent agreement இருந்ததா? Register செய்யப்பட்டதா?"
+        },
+        {
+          "key": "reason",
+          "q": "What reason is the landlord giving, if any: damage, unpaid bills, or no reply?",
+          "q_hi": "मकान मालिक क्या वजह दे रहे हैं: नुकसान, बिल बाकी, या कोई जवाब ही नहीं?",
+          "q_ta": "வீட்டு உரிமையாளர் என்ன காரணம் சொல்கிறார்: சேதம், நிலுவை bill, அல்லது பதிலே இல்லையா?"
+        },
+        {
+          "key": "proof",
+          "q": "Do you have proof of paying the deposit: bank transfer, receipt or messages?",
+          "q_hi": "Deposit देने का proof है? Bank transfer, रसीद या messages?",
+          "q_ta": "Deposit கொடுத்ததற்கு proof உள்ளதா? Bank transfer, ரசீது அல்லது messages?"
+        }
       ],
       "forum": "Rent Authority under your state's tenancy law where one exists, otherwise the civil court",
       "steps": [
@@ -54,7 +144,12 @@
         "If your state has a Rent Authority (for example under the Tamil Nadu Regulation of Rights and Responsibilities of Landlords and Tenants Act, 2017), apply there. Otherwise file a civil suit for recovery.",
         "Mediation through the DLSA or a Lok Adalat is free and often faster for deposit disputes."
       ],
-      "documents": ["Rent agreement", "Proof of deposit payment", "Move-out date proof and photos of the flat when you left", "Messages with the landlord"],
+      "documents": [
+        "Rent agreement",
+        "Proof of deposit payment",
+        "Move-out date proof and photos of the flat when you left",
+        "Messages with the landlord"
+      ],
       "deadline": "A suit for recovery of money is generally within three years. Send the notice now so the trail starts.",
       "cost": "A notice costs nothing if you send it yourself. A Lok Adalat has no court fee.",
       "draft": "legal_notice_deposit",
@@ -64,12 +159,46 @@
     {
       "id": "consumer",
       "title": "Defective product, bad service or refund refused",
-      "keywords": ["refund", "defective", "product", "service", "company", "order", "warranty", "replacement", "consumer", "रिफंड", "खराब", "சேவை", "பணம் திரும்ப"],
+      "keywords": [
+        "refund",
+        "defective",
+        "product",
+        "service",
+        "company",
+        "order",
+        "warranty",
+        "replacement",
+        "consumer",
+        "रिफंड",
+        "खराब",
+        "சேவை",
+        "பணம் திரும்ப"
+      ],
       "ask": [
-        { "key": "what", "q": "What did you buy or pay for, from which company, and when?" },
-        { "key": "amount", "q": "How much did you pay?" },
-        { "key": "problem", "q": "What went wrong, and what did the company say when you complained?" },
-        { "key": "proof", "q": "Do you have the bill or invoice, and any complaint or ticket number?" }
+        {
+          "key": "what",
+          "q": "What did you buy or pay for, from which company, and when?",
+          "q_hi": "आपने क्या खरीदा या किस service के पैसे दिए, किस company से, और कब?",
+          "q_ta": "என்ன வாங்கினீர்கள் அல்லது எந்த service-க்கு பணம் கொடுத்தீர்கள், எந்த company, எப்போது?"
+        },
+        {
+          "key": "amount",
+          "q": "How much did you pay?",
+          "q_hi": "आपने कितने पैसे दिए?",
+          "q_ta": "எவ்வளவு பணம் கொடுத்தீர்கள்?"
+        },
+        {
+          "key": "problem",
+          "q": "What went wrong, and what did the company say when you complained?",
+          "q_hi": "क्या खराबी हुई, और शिकायत करने पर company ने क्या कहा?",
+          "q_ta": "என்ன பிரச்சனை, புகார் செய்தபோது company என்ன சொன்னது?"
+        },
+        {
+          "key": "proof",
+          "q": "Do you have the bill or invoice, and any complaint or ticket number?",
+          "q_hi": "Bill या invoice है? कोई complaint या ticket number?",
+          "q_ta": "Bill அல்லது invoice உள்ளதா? Complaint அல்லது ticket number?"
+        }
       ],
       "forum": "District Consumer Disputes Redressal Commission (claims up to ₹50 lakh)",
       "steps": [
@@ -78,7 +207,12 @@
         "File a consumer complaint online on e-Daakhil / e-Jagriti at the District Commission. You can argue it yourself; Section 70 of the Consumer Protection Act, 2019 lets you appear in person.",
         "Ask for refund, compensation for harassment, and litigation costs."
       ],
-      "documents": ["Invoice or bill", "Warranty card", "Screenshots of the order, complaint tickets and replies", "Photos or video of the defect"],
+      "documents": [
+        "Invoice or bill",
+        "Warranty card",
+        "Screenshots of the order, complaint tickets and replies",
+        "Photos or video of the defect"
+      ],
       "deadline": "File within two years of the problem arising (Section 69, Consumer Protection Act, 2019).",
       "cost": "No court fee for claims up to ₹5 lakh. A lawyer is optional.",
       "draft": "consumer_notice",
@@ -88,12 +222,39 @@
     {
       "id": "cyber_fraud",
       "title": "Online fraud or money stolen through UPI, OTP or a scam call",
-      "keywords": ["fraud", "scam", "otp", "upi", "kyc", "hacked", "cyber", "paise kat gaye", "धोखा", "ठगी", "மோசடி"],
+      "keywords": [
+        "fraud",
+        "scam",
+        "otp",
+        "upi",
+        "kyc",
+        "hacked",
+        "cyber",
+        "paise kat gaye",
+        "धोखा",
+        "ठगी",
+        "மோசடி"
+      ],
       "urgent": true,
       "ask": [
-        { "key": "when", "q": "When did the money leave your account? Minutes and hours matter here." },
-        { "key": "amount", "q": "How much was taken, and from which bank or app?" },
-        { "key": "how", "q": "How did it happen: a call, a link, an app, or a QR code?" }
+        {
+          "key": "when",
+          "q": "When did the money leave your account? Minutes and hours matter here.",
+          "q_hi": "पैसे खाते से कब कटे? यहाँ हर घंटा मायने रखता है।",
+          "q_ta": "பணம் எப்போது கணக்கிலிருந்து போனது? இங்கே ஒவ்வொரு மணி நேரமும் முக்கியம்."
+        },
+        {
+          "key": "amount",
+          "q": "How much was taken, and from which bank or app?",
+          "q_hi": "कितने पैसे गए, और किस bank या app से?",
+          "q_ta": "எவ்வளவு பணம் போனது, எந்த bank அல்லது app?"
+        },
+        {
+          "key": "how",
+          "q": "How did it happen: a call, a link, an app, or a QR code?",
+          "q_hi": "यह कैसे हुआ: call, link, app या QR code से?",
+          "q_ta": "இது எப்படி நடந்தது: call, link, app அல்லது QR code?"
+        }
       ],
       "forum": "National Cyber Crime Reporting Portal and your bank",
       "steps": [
@@ -102,7 +263,12 @@
         "Keep every screenshot: the transaction ID, the caller's number and the messages. Do not delete anything.",
         "Follow up for an FIR at the cyber police station with the 1930 acknowledgement number."
       ],
-      "documents": ["Transaction IDs and bank SMS", "Caller number, links and screenshots", "1930 / portal acknowledgement number", "Bank complaint reference"],
+      "documents": [
+        "Transaction IDs and bank SMS",
+        "Caller number, links and screenshots",
+        "1930 / portal acknowledgement number",
+        "Bank complaint reference"
+      ],
       "deadline": "Immediately. The first few hours decide whether money can be frozen.",
       "cost": "Free.",
       "draft": null,
@@ -112,11 +278,36 @@
     {
       "id": "fir_refused",
       "title": "Police refusing to register an FIR",
-      "keywords": ["fir", "police", "thana", "complaint nahi", "station", "पुलिस", "एफआईआर", "थाना", "காவல்"],
+      "keywords": [
+        "fir",
+        "police",
+        "thana",
+        "complaint nahi",
+        "station",
+        "पुलिस",
+        "एफआईआर",
+        "थाना",
+        "காவல்"
+      ],
       "ask": [
-        { "key": "what", "q": "What happened, and when? Was anyone hurt, threatened, or was property stolen?" },
-        { "key": "station", "q": "Which police station did you go to, and what did they say?" },
-        { "key": "proof", "q": "Do you have any proof or witnesses?" }
+        {
+          "key": "what",
+          "q": "What happened, and when? Was anyone hurt, threatened, or was property stolen?",
+          "q_hi": "क्या हुआ था, और कब? कोई घायल हुआ, धमकी मिली, या कुछ चोरी हुआ?",
+          "q_ta": "என்ன நடந்தது, எப்போது? யாருக்காவது காயமா, மிரட்டலா, அல்லது ஏதாவது திருட்டா?"
+        },
+        {
+          "key": "station",
+          "q": "Which police station did you go to, and what did they say?",
+          "q_hi": "आप किस थाने गए थे, और उन्होंने क्या कहा?",
+          "q_ta": "எந்த காவல் நிலையத்துக்கு சென்றீர்கள், அவர்கள் என்ன சொன்னார்கள்?"
+        },
+        {
+          "key": "proof",
+          "q": "Do you have any proof or witnesses?",
+          "q_hi": "कोई proof या गवाह है?",
+          "q_ta": "ஏதாவது proof அல்லது சாட்சி உள்ளதா?"
+        }
       ],
       "forum": "Police station, then the Superintendent of Police, then the Magistrate",
       "steps": [
@@ -125,7 +316,12 @@
         "If nothing happens, apply to the Judicial Magistrate to order an investigation (Section 175(3), BNSS).",
         "For offences punishable with 3 to 7 years, the police may first do a preliminary inquiry within 14 days (Section 173(3), BNSS)."
       ],
-      "documents": ["Written complaint with date, time, place and what happened", "Proof of visiting the station or refusal", "Medical report if hurt", "Names of witnesses"],
+      "documents": [
+        "Written complaint with date, time, place and what happened",
+        "Proof of visiting the station or refusal",
+        "Medical report if hurt",
+        "Names of witnesses"
+      ],
       "deadline": "Report as soon as possible. Delay is often used to doubt a complaint.",
       "cost": "Free. A lawyer helps at the Magistrate stage; the DLSA can provide one.",
       "draft": "sp_complaint",
@@ -135,11 +331,33 @@
     {
       "id": "cheque_bounce",
       "title": "Cheque bounced",
-      "keywords": ["cheque", "check bounce", "bounce", "dishonour", "चेक", "காசோலை"],
+      "keywords": [
+        "cheque",
+        "check bounce",
+        "bounce",
+        "dishonour",
+        "चेक",
+        "காசோலை"
+      ],
       "ask": [
-        { "key": "amount", "q": "What was the cheque amount, and what was it for: a loan, a sale, or rent?" },
-        { "key": "date", "q": "On what date did the bank return it, and what reason did the return memo give?" },
-        { "key": "notice", "q": "Have you sent a demand notice to the person yet?" }
+        {
+          "key": "amount",
+          "q": "What was the cheque amount, and what was it for: a loan, a sale, or rent?",
+          "q_hi": "Cheque कितने का था, और किस लिए दिया था: उधार, बिक्री या किराया?",
+          "q_ta": "Cheque எவ்வளவு, எதற்காக கொடுத்தார்கள்: கடன், விற்பனை அல்லது வாடகை?"
+        },
+        {
+          "key": "date",
+          "q": "On what date did the bank return it, and what reason did the return memo give?",
+          "q_hi": "Bank ने cheque किस तारीख को लौटाया, और memo में क्या वजह लिखी थी?",
+          "q_ta": "Bank எந்த தேதியில் cheque திருப்பியது, memo-வில் என்ன காரணம்?"
+        },
+        {
+          "key": "notice",
+          "q": "Have you sent a demand notice to the person yet?",
+          "q_hi": "क्या आपने उस व्यक्ति को demand notice भेज दिया है?",
+          "q_ta": "அந்த நபருக்கு demand notice அனுப்பிவிட்டீர்களா?"
+        }
       ],
       "forum": "Judicial Magistrate (complaint under Section 138, Negotiable Instruments Act, 1881)",
       "steps": [
@@ -148,7 +366,12 @@
         "If they do not pay, file a complaint before the Magistrate within one month after those 15 days end.",
         "The cheque must have been for a legally enforceable debt. Keep the loan or sale proof ready."
       ],
-      "documents": ["Original cheque", "Bank return memo", "Copy of the demand notice and postal or courier proof", "Proof of the debt"],
+      "documents": [
+        "Original cheque",
+        "Bank return memo",
+        "Copy of the demand notice and postal or courier proof",
+        "Proof of the debt"
+      ],
       "deadline": "Strict: notice within 30 days of the return memo, complaint within 1 month after the 15-day payment window.",
       "cost": "Court fee depends on the cheque amount and the state.",
       "draft": "cheque_notice",
@@ -156,5 +379,20 @@
       "reviewed": false
     }
   ],
-  "danger_words": ["maar", "beat", "kill", "jaan se", "threat", "dhamki", "suicide", "khudkushi", "rape", "abuse", "मार", "धमकी", "அடி", "கொலை"]
+  "danger_words": [
+    "maar",
+    "beat",
+    "kill",
+    "jaan se",
+    "threat",
+    "dhamki",
+    "suicide",
+    "khudkushi",
+    "rape",
+    "abuse",
+    "मार",
+    "धमकी",
+    "அடி",
+    "கொலை"
+  ]
 }
