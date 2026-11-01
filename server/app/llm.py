@@ -8,8 +8,10 @@ If one is unreachable (a Kaggle session ended, the Space is out of quota),
 the next takes over, then BACKUP_LLM_* (e.g. Gemini) as the last resort.
 """
 
+import asyncio
 import json
 import re
+import time
 
 import httpx
 
@@ -61,6 +63,8 @@ async def _openai_chat(base: str, key: str, model: str, messages: list[dict], ma
         body["chat_template_kwargs"] = {"enable_thinking": False}
     if want_json:
         body["response_format"] = {"type": "json_object"}
+    if not key and "aiplatform.googleapis.com" in base:
+        key = await _vertex_token()
     headers = {"Authorization": f"Bearer {key}"} if key else {}
     async with httpx.AsyncClient(timeout=45) as client:
         r = await client.post(f"{base}/chat/completions", json=body, headers=headers)
@@ -83,3 +87,25 @@ def parse_json(text: str) -> dict | None:
         return json.loads(m.group(0))
     except json.JSONDecodeError:
         return None
+
+
+_vertex = {"token": "", "exp": 0.0}
+
+
+async def _vertex_token() -> str:
+    """Short-lived OAuth token for Vertex AI from the runtime's own identity
+    (the Cloud Run service account, or `gcloud auth application-default login`
+    locally), so no long-lived key exists anywhere."""
+    if time.time() < _vertex["exp"] - 60:
+        return _vertex["token"]
+    import google.auth
+    from google.auth.transport.requests import Request
+
+    def refresh() -> str:
+        creds, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+        creds.refresh(Request())
+        _vertex["exp"] = creds.expiry.timestamp() if creds.expiry else time.time() + 1800
+        return creds.token
+
+    _vertex["token"] = await asyncio.to_thread(refresh)
+    return _vertex["token"]

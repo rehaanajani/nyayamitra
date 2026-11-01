@@ -5,3 +5,4 @@ websockets==17.4
 python-dotenv==1.2.4
 python-multipart==0.0.33
 gradio_client==2.7.2
+google-auth[requests]==2.40.3
