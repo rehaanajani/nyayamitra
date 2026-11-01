@@ -4,6 +4,43 @@ import { FadeUp, LightField, Reveal, SectionLabel } from '../components/ui'
 import HowItWorks from '../components/HowItWorks'
 import Scene from '../components/Scene'
 
+// Gnani's own model cards use a black monogram tile, the version, and a small
+// peach role tag; we follow that rather than inventing colours per model.
+const MODELS = [
+  { mark: 'P', name: 'Prisma', version: 'v3.0', verb: 'listens', role: 'Speech to text' },
+  { mark: 'T', name: 'Timbre', version: 'v3.0', verb: 'speaks', role: 'Text to speech' },
+  { mark: 'E', name: 'Evon', version: 'v3.3', verb: 'reasons', role: 'Language model' },
+]
+
+function ModelStrip() {
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.35, duration: 0.7 }} className="mt-14 flex flex-col items-center gap-4">
+      <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted">Powered by Gnani's own models</div>
+      <div className="grid w-full max-w-3xl gap-3 sm:grid-cols-3">
+        {MODELS.map((m, i) => (
+          <motion.div
+            key={m.name}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.45 + i * 0.1, duration: 0.5 }}
+            className="rounded-2xl border border-white/80 bg-white/60 p-4 text-left shadow-[0_10px_30px_-18px_rgba(16,24,40,.35)] backdrop-blur-xl"
+          >
+            <div className="flex items-center justify-between">
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-ink text-[14px] font-semibold text-white">{m.mark}</span>
+              <span className="rounded-md bg-[#fdeee3] px-2 py-1 text-[9.5px] font-medium uppercase tracking-[0.12em] text-[#b0623a]">{m.role}</span>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="font-display text-[22px] leading-none">{m.name}</span>
+              <span className="text-[12px] text-muted">Gnani {m.name} {m.version}</span>
+            </div>
+            <div className="mt-1.5 text-[13.5px] text-ink-2">It {m.verb}.</div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
 const DOORS = [
   {
     href: '#/sahay',
@@ -40,9 +77,6 @@ export default function Home() {
     <>
       <LightField className="pb-24 pt-36 sm:pt-44">
         <div className="mx-auto flex max-w-5xl flex-col items-center px-5 text-center">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="chip mb-8 bg-white/80">
-            Built on Gnani Prisma · Timbre · Evon
-          </motion.div>
           <Reveal text="न्यायमित्र" className="font-deva text-[clamp(4rem,13vw,9.5rem)] leading-[0.95] text-ink" />
           <Reveal
             as="p"
@@ -57,6 +91,7 @@ export default function Home() {
             <a href="#/sahay" className="pill pill-dark">मुझे मदद चाहिए · Get help <ArrowRight size={16} /></a>
             <a href="#/abhyas" className="pill pill-light">I'm a lawyer · Practise</a>
           </motion.div>
+          <ModelStrip />
         </div>
       </LightField>
 
