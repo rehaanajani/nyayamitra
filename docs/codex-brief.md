@@ -63,15 +63,42 @@ Keep the SVGs clean: no metadata, no editor junk, run through svgo.
 
 **Rejected:** the woman at the tea stall at sunset. The orange sunset, saturated sky and busy street don't match the anchor. Delete it.
 
-**Where scenes are used:** only the two door cards and the two page headers (सहाय, अभ्यास). The "How it works" stacking cards show real product UI built in code, as on gnani.ai, so don't make images for them.
+**Where scenes are used:** the two door cards, the two page headers (सहाय, अभ्यास), the home "one case, both doors" band, and under the सहाय path card. The "How it works" stacking cards show real product UI built in code, as on gnani.ai, so don't make images for them.
 
-### Scene style (copy this into every scene prompt)
-*Soft 3D animated-film still, matte materials, gentle subsurface skin. Lavender-and-cream morning daylight through tall windows, soft volumetric light rays, cool shadows tinted lavender (never black or brown). Palette: cream walls, honey wood, lavender #E2E0FB, cyan #A2EBFC sky, small peach #FFD3B7 accents, one translucent violet #8981F1 sound ribbon as the hero element. Faces are blank or turned away, with no detailed features. Calm, dignified, hopeful. Shallow depth of field, slight grain. No sunsets, no orange skies, no crowds, no text or signage anywhere.*
+### Approved so far
+- `scene-court.webp`: the anchor. Keep it untouched.
+- `scene-sahay.webp`: the woman at home on the phone. Approved.
 
-### Scene to make: `scene-sahay.webp` (1600×1200), to replace the rejected tea stall
-> [scene style] Inside a small, tidy Indian home in the morning: a young woman in a simple cotton kurta sits at a wooden table by a tall window with lavender morning light, seen from three-quarter behind, holding a basic phone to her ear. On the table: a steel tumbler of tea, a folded salary slip and an envelope. A translucent violet sound ribbon flows from her phone out toward the window light, calm and reassuring. Potted tulsi plant, a wall calendar with no readable text. Left 45% of the frame quieter (text sits there).
+### Rejected, never repeat
+The winding cream path with a girl in casual clothes, coloured milestone stones and an arch doorway. It's a **toy diorama**: big head, clay rocks, plastic plants, isometric game look. The person meant to be the advocate wears no coat. Low effort. Delete it and anything like it.
 
-Export both as WebP quality 85 (under 350 KB) plus `-800.webp` copies.
+### Realism rule (non-negotiable)
+Premium **cinematic 3D**, like a frame from a high-end brand film or an architectural visualisation, matching `scene-court`:
+- **Realistic adult proportions** (about 7.5–8 heads tall), real hands, real fabric folds and weight.
+- Physically based materials: wood grain, paper, cotton, wool; soft global illumination.
+- A shallow photographic depth of field (35–50mm lens look), subtle film grain.
+- **Not** cartoon, Pixar-cute, chibi, clay or toy, isometric diorama, low-poly or vector. No floating props, no plastic plants, no "game level" paths.
+- Faces are never the focus: subjects turned away, three-quarter from behind, or naturally out of focus. No identifiable faces.
+
+### Cast bible (same people, same clothes, in every image)
+| Who | Always |
+|---|---|
+| **Meena** (the citizen) | Indian woman, about 28, slim. **Lavender cotton salwar kurta with small white block-print motifs**, matching lavender dupatta, long black hair in a low braid, a simple tan cloth tote. Basic smartphone. |
+| **Advocate Kabir** (the young lawyer) | Indian man, about 27, short black hair, neat. **Black advocate's coat (single-breasted, worn buttoned), crisp white shirt, white advocate bands (two white tabs at the collar), black trousers, black leather shoes.** Carries a buff case file tied with **faded red cloth tape**. The black coat and white bands are visible in **every** image he appears in. A black gown only in courtroom shots. |
+| **The judge** | Older man, grey hair, black coat and white bands, seated at a raised wooden bench. Face featureless or in soft shadow. |
+
+### Scene style (copy into every prompt)
+*Cinematic 3D still matching the reference courtroom: realistic proportions, physically based materials, lavender-and-cream morning daylight through tall windows, soft volumetric light, cool shadows tinted lavender (never black or brown). Palette: cream walls, honey wood, lavender #E2E0FB, cyan #A2EBFC sky, peach #FFD3B7 accents. One translucent violet #8981F1 sound ribbon is the hero element, flowing from whoever is speaking. Calm, dignified, hopeful. 35–50mm lens, shallow depth of field, slight grain. No text, letters, numbers or signage anywhere; papers and screens are blank.*
+
+### Shot list (make these, 1600×1200, each with an `-800.webp` copy)
+1. **`scene-journey.webp`** (home page, "one case, both doors"): Morning, outside an Indian district court complex: wide stone steps, cream colonial building with arches, neem trees, soft lavender sky. **Meena** and **Advocate Kabir** walk up the steps side by side, seen from behind and slightly to the side. Kabir in his black coat and white bands holds the red-taped file; Meena holds her phone. A thin violet sound ribbon drifts from her phone ahead of them toward the open doorway. Two or three blurred background figures at most. Left 40% quieter (sky and steps).
+2. **`scene-practice.webp`** (अभ्यास page header): Night, a small rented room. **Advocate Kabir** stands rehearsing aloud at a desk, coat on, bands on, one hand gesturing, files with red tape and a bare-act book open. A laptop on the desk glows with a blank screen. From the laptop, a translucent violet sound ribbon reaches toward him (the AI judge talking back). A warm desk lamp plus cool lavender moonlight from the window. Seen three-quarter from behind. Right 40% quieter.
+3. **`scene-legal-aid.webp`** (सहाय results, under the path card): Daytime, a modest legal-aid office: a steel almirah, stacked files, a wooden desk, a window with soft light. **Meena** sits across the desk from **Advocate Kabir** (coat and bands), who is pointing to a blank document on the desk. A violet ribbon flows between them, calm and connected. Seen over Meena's shoulder; Kabir's face soft and out of focus. Left 40% quieter.
+
+### Check every image before saving
+1. Put it next to `scene-court`. Same film? Same light, materials and grade?
+2. Is Kabir wearing the **black coat and white bands**? Is Meena in the **lavender block-print kurta**? If not, regenerate.
+3. Any cartoon or toy look, a big head, plastic textures, text or signage? Regenerate (up to 4 tries per image).
 
 ## 6. Gradient textures (generate or render; prompts are exact)
 
