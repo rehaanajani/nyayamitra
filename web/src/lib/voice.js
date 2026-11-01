@@ -29,10 +29,11 @@ function wsUrl(path) {
 
 /**
  * Live listener: mic -> /ws/stt -> Prisma. Calls back with Prisma events.
- * onSegment(text) fires per VAD segment; onSpeechStart() when the user starts talking
- * (used for barge-in); onLevel(0..1) for the orb.
+ * onSegment(text) fires per finished utterance (final_transcript: digits, Latin English);
+ * onInterim(text) every ~450 ms while speaking (partial_transcript: Devanagari, numbers as words);
+ * onSpeechStart() when the user starts talking (used for barge-in); onLevel(0..1) for the orb.
  */
-export async function startListening({ lang, onSegment, onSpeechStart, onLevel, onError }) {
+export async function startListening({ lang, onSegment, onInterim, onSpeechStart, onLevel, onError }) {
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
   })
@@ -53,8 +54,10 @@ export async function startListening({ lang, onSegment, onSpeechStart, onLevel, 
   ws.onmessage = (e) => {
     let m
     try { m = JSON.parse(e.data) } catch { return }
+    const text = (m.text || '').trim()
     if (m.type === 'speech_start') onSpeechStart?.()
-    else if (m.type === 'transcript' && (m.text || '').trim()) onSegment?.(m.text.trim(), m)
+    else if (m.type === 'partial_transcript' && text) onInterim?.(text, m)
+    else if ((m.type === 'final_transcript' || m.type === 'transcript') && text) onSegment?.(text, m)
     else if (m.type === 'error') onError?.(m.message || m.error || 'Speech error')
   }
   ws.onerror = () => onError?.('Could not reach the speech server')
