@@ -1,3 +1,5 @@
+import { API_BASE } from './api'
+
 // Downsamples the mic to 16 kHz mono s16le and emits 512-sample (1024-byte)
 // frames, which is exactly what Prisma realtime expects.
 const WORKLET = `
@@ -23,6 +25,7 @@ registerProcessor('pcm16', Pcm16);
 `
 
 function wsUrl(path) {
+  if (API_BASE) return API_BASE.replace(/^http/, 'ws') + path
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
   return `${proto}//${location.host}${path}`
 }
@@ -115,7 +118,7 @@ export function createSpeaker({ onStart, onEnd, onLevel } = {}) {
   }
 
   async function fetchAudio(text, lang, role) {
-    const res = await fetch('/api/tts', {
+    const res = await fetch(API_BASE + '/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, lang, role }),
