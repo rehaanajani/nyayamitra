@@ -19,29 +19,30 @@ const COLUMNS = [
 export default function Footer() {
   return (
     <footer className="px-3 pb-3 pt-44 sm:px-5 sm:pb-5">
-      <div className="relative mx-auto max-w-[1360px] rounded-[32px] bg-ink px-6 pb-8 pt-[24rem] text-white sm:rounded-[44px] sm:px-12 sm:pt-[29rem]">
+      <div className="relative mx-auto max-w-[1360px] rounded-[32px] bg-ink px-6 pb-8 pt-[21rem] text-white sm:rounded-[44px] sm:px-12 sm:pt-[24rem]">
         <div className="absolute inset-x-4 -top-32 mx-auto max-w-4xl overflow-hidden rounded-[32px] wash shadow-[0_30px_60px_-20px_rgba(11,11,15,.45)] sm:inset-x-10 sm:-top-36 sm:rounded-[44px]">
           <div className="rays absolute -inset-[40%] opacity-70" />
-          <div className="relative flex h-[30rem] flex-col items-center px-6 pt-9 text-center sm:h-[36rem] sm:pt-11">
+          <div className="relative flex h-[27rem] flex-col items-center px-6 pt-9 text-center sm:h-[31rem] sm:pt-11">
             <div className="font-deva text-4xl text-ink sm:text-6xl">न्याय सबका है।</div>
             <div className="font-display mt-2 text-lg text-ink-2 sm:text-2xl">Justice should speak your language.</div>
           </div>
           {/* Mitra, the mascot, rises from the card's lower edge, centred */}
           <div className="absolute bottom-0 left-1/2 w-[250px] -translate-x-1/2 sm:w-[340px]">
-            {/* speech bubble: pops in as if he's just said it */}
+            {/* speech bubble: grows out of his mouth, comic-style, then floats gently */}
             <motion.div
-              className="absolute -right-28 top-2 origin-bottom-left sm:-right-40 sm:top-4"
-              initial={{ scale: 0, opacity: 0 }}
-              whileInView={{ scale: [0, 1.12, 1], opacity: 1 }}
+              className="absolute left-[76%] bottom-[66%] z-10 origin-bottom-left drop-shadow-[0_12px_18px_rgba(11,11,15,.22)]"
+              initial={{ scale: 0, opacity: 0, rotate: -8 }}
+              whileInView={{ scale: 1, opacity: 1, rotate: 0 }}
               viewport={{ once: false, amount: 0.6 }}
-              transition={{ duration: 0.55, ease: 'easeOut', delay: 0.2 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 14, delay: 0.25 }}
             >
-              <div className="relative rounded-[28px] bg-white px-6 py-3 shadow-[0_14px_30px_-12px_rgba(11,11,15,.35)] sm:px-8 sm:py-4">
-                <span className="font-deva text-3xl text-ink sm:text-4xl">नमस्ते!</span>
-                {/* tail toward his mouth */}
-                <span className="absolute -bottom-3 left-6 h-6 w-6 rotate-45 rounded-[4px] bg-white" />
-                <span className="absolute -bottom-8 left-1 h-3 w-3 rounded-full bg-white shadow-sm" />
-              </div>
+              <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }} className="relative">
+                <div className="whitespace-nowrap rounded-[22px] bg-white px-5 py-2.5 sm:px-7 sm:py-3">
+                  <span className="font-deva text-[28px] leading-none text-ink sm:text-[38px]">नमस्ते!</span>
+                </div>
+                {/* tail: a wedge pointing back at his mouth */}
+                <span className="absolute -bottom-[22px] -left-[10px] h-[28px] w-[46px] bg-white" style={{ clipPath: 'polygon(56% 0, 100% 0, 0 100%)' }} />
+              </motion.div>
             </motion.div>
             <img src="/brand/mitra.webp" alt="Mitra, a friendly lion in an advocate's coat and bands, holding the Constitution of India and waving" className="relative block w-full drop-shadow-[0_18px_30px_rgba(11,11,15,.25)]" />
           </div>
