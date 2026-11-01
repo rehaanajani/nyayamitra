@@ -214,12 +214,13 @@ class BenchTurn(BaseModel):
     temperament: str = "fair"
     text: str
     history: list[dict] = []
+    side: str | None = None
 
 
 @app.post("/api/abhyas/turn")
 async def abhyas_turn(req: BenchTurn, request: Request):
     try:
-        return await abhyas.bench_turn(keys_from(request), req.case_id, req.lang, req.temperament, req.history, req.text)
+        return await abhyas.bench_turn(keys_from(request), req.case_id, req.lang, req.temperament, req.history, req.text, req.side)
     except ValueError as e:
         raise HTTPException(404, str(e))
 
@@ -228,22 +229,24 @@ class Interject(BaseModel):
     lang: str = "hi"
     partial: str
     seconds: float = 0
+    case_id: str | None = None
 
 
 @app.post("/api/abhyas/interject")
 async def abhyas_interject(req: Interject):
-    return {"interjection": abhyas.interject(req.lang, req.partial, req.seconds)}
+    return {"interjection": abhyas.interject(req.lang, req.partial, req.seconds, req.case_id)}
 
 
 class Debrief(BaseModel):
     case_id: str
     lang: str = "hi"
     history: list[dict] = []
+    side: str | None = None
 
 
 @app.post("/api/abhyas/debrief")
 async def abhyas_debrief(req: Debrief, request: Request):
-    return await abhyas.debrief(keys_from(request), req.case_id, req.lang, req.history)
+    return await abhyas.debrief(keys_from(request), req.case_id, req.lang, req.history, req.side)
 
 
 class CustomCase(BaseModel):
