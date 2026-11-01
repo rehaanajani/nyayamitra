@@ -1,11 +1,12 @@
 """Chat client for Gnani Evon.
 
-Two ways to reach it, first match wins:
-1. LLM_BASE_URL: any OpenAI-compatible server running Evon, e.g. llama.cpp
-   on Kaggle's free T4s (deploy/kaggle-evon.ipynb) or vLLM on a rented GPU.
+Routes, Evon first:
+1. LLM_BASE_URL: Evon on any OpenAI-compatible server, e.g. llama.cpp on
+   Kaggle's free T4s (deploy/kaggle-evon.ipynb).
 2. HF_TOKEN: Evon on the free Hugging Face Space (see evon_space.py).
-If one is unreachable the next takes over: Kaggle Evon, then BACKUP_LLM_*
-(Gemini), then the Evon Space.
+3. BACKUP_LLM_*: Gemini on Vertex AI.
+Each route races the next after a short head start (see _race), so a slow or
+dead route never stalls a spoken reply.
 """
 
 import asyncio
@@ -27,29 +28,68 @@ class NoLLM(Exception):
     pass
 
 
+# A route that just failed is skipped for a while, so a dead Kaggle tunnel or an
+# exhausted Space costs one slow turn, not every turn.
+_COOLDOWN = {"kaggle": 120, "space": 900, "backup": 60}
+_failed_at: dict[str, float] = {}
+# Evon gets this long on its own before the next route starts racing it.
+HEDGE_AFTER = 2.5
+
+
 async def chat(keys: Keys, messages: list[dict], *, max_tokens: int = 300,
                temperature: float = 0.5, want_json: bool = False) -> str:
     if not keys.has_llm:
         raise NoLLM()
-    routes = []
+    routes = []  # (name, start, hard timeout in seconds), Evon first
     if keys.llm_base and keys.llm_model:
-        routes.append(lambda: _openai_chat(keys.llm_base, keys.llm_key, keys.llm_model,
-                                           messages, max_tokens, temperature, want_json))
-    # the backup answers in seconds; the free Space can stall for most of a minute
-    # once its daily quota is gone, so it goes last
-    if keys.fb_base and keys.fb_model:
-        routes.append(lambda: _openai_chat(keys.fb_base, keys.fb_key, keys.fb_model,
-                                           messages, max_tokens, temperature, want_json))
+        routes.append(("kaggle", lambda: _openai_chat(keys.llm_base, keys.llm_key, keys.llm_model,
+                                                      messages, max_tokens, temperature, want_json), 20))
     if keys.hf_token:
-        routes.append(lambda: _space_chat(keys.hf_token, messages, max_tokens))
-    for i, route in enumerate(routes):
-        try:
-            return await route()
-        except Exception as e:
-            log.warning("llm route %d failed: %s: %s", i, type(e).__name__, str(e)[:200])
-            if i == len(routes) - 1:
-                raise
-    raise NoLLM()
+        routes.append(("space", lambda: _space_chat(keys.hf_token, messages, max_tokens), 25))
+    if keys.fb_base and keys.fb_model:
+        routes.append(("backup", lambda: _openai_chat(keys.fb_base, keys.fb_key, keys.fb_model,
+                                                      messages, max_tokens, temperature, want_json), 30))
+    now = time.time()
+    live = [r for r in routes if now - _failed_at.get(r[0], 0) > _COOLDOWN[r[0]]] or routes[-1:]
+    return await _race(live)
+
+
+async def _race(routes: list) -> str:
+    """Evon routes start together; the backup joins after HEDGE_AFTER seconds, or
+    at once if every Evon route has already failed. The first good answer wins.
+    Losers are left to finish in the background so their failures still count."""
+    evon = [r for r in routes if r[0] != "backup"]
+    backup = [r for r in routes if r[0] == "backup"]
+    pending: dict[asyncio.Task, str] = {}
+    last_err: Exception | None = None
+
+    def record(task: asyncio.Task, name: str):
+        if task.cancelled():
+            return
+        err = task.exception()
+        if err is not None or not task.result():
+            _failed_at[name] = time.time()
+            log.warning("llm route %s failed: %s: %s", name, type(err).__name__, str(err)[:200])
+
+    def launch(name, start, limit):
+        task = asyncio.create_task(asyncio.wait_for(start(), limit))
+        task.add_done_callback(lambda t, n=name: record(t, n))
+        pending[task] = name
+
+    for r in evon or backup:
+        launch(*r)
+    queue = backup if evon else []
+    while pending:
+        done, _ = await asyncio.wait(pending, timeout=HEDGE_AFTER if queue else None,
+                                     return_when=asyncio.FIRST_COMPLETED)
+        for task in done:
+            pending.pop(task)
+            if not task.exception() and task.result():
+                return task.result()
+            last_err = task.exception() or RuntimeError("empty reply")
+        if queue and (not done or not pending):
+            launch(*queue.pop(0))  # Evon is slow or gone: let the backup race it
+    raise last_err or NoLLM()
 
 
 async def _space_chat(token: str, messages: list[dict], max_tokens: int) -> str:
