@@ -5,7 +5,7 @@ Docs: https://docs.gnani.ai — base URL api.vachana.ai, auth header X-API-Key-I
 
 import httpx
 
-from .config import GNANI_BASE, GNANI_WS_BASE, LANGS
+from .config import GNANI_BASE, GNANI_WS_BASE, LANGS, STT_FORMAT
 
 STT_MODEL = "prisma-v3.0"
 TTS_MODEL = "timbre-v3.0"
@@ -47,7 +47,7 @@ async def transcribe_file(audio: bytes, filename: str, lang: str, key: str) -> d
     data = {
         "model": STT_MODEL,
         "language_code": LANGS.get(lang, LANGS["en"])["stt"],
-        "format": "codemix",
+        "format": STT_FORMAT,
     }
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(
@@ -69,12 +69,14 @@ def stream_headers(lang: str, key: str, sample_rate: int = 16000) -> dict:
     """Prisma realtime config is sent as upgrade headers.
 
     Audio must be raw PCM s16le mono in exact 1024-byte frames at real-time pace.
+    `x-partials` streams interim text every ~450 ms so the bench can cut in mid-sentence.
     """
     return {
         "x-api-key-id": key,
         "model": STT_MODEL,
-        "language_code": LANGS.get(lang, LANGS["en"])["stt"],
-        "format": "codemix",
+        "language_code": LANGS.get(lang, LANGS["en"])["stream"],
+        "format": STT_FORMAT,
+        "x-partials": "true",
         "x-sample-rate": str(sample_rate),
         "x-vad-threshold": "0.7",
         "x-min-silence-ms": "600",
