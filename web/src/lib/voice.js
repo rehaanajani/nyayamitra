@@ -1,5 +1,3 @@
-import { keyHeaders, loadKeys } from './api'
-
 // Downsamples the mic to 16 kHz mono s16le and emits 512-sample (1024-byte)
 // frames, which is exactly what Prisma realtime expects.
 const WORKLET = `
@@ -45,16 +43,12 @@ export async function startListening({ lang, onSegment, onSpeechStart, onLevel, 
   const node = new AudioWorkletNode(ctx, 'pcm16')
   src.connect(node)
 
-  const k = loadKeys()
   const ws = new WebSocket(wsUrl('/ws/stt'))
   ws.binaryType = 'arraybuffer'
   let open = false
   ws.onopen = () => {
     open = true
-    ws.send(JSON.stringify({
-      type: 'start', lang, sample_rate: 16000,
-      keys: { 'x-gnani-key': k.gnani || '' },
-    }))
+    ws.send(JSON.stringify({ type: 'start', lang, sample_rate: 16000 }))
   }
   ws.onmessage = (e) => {
     let m
@@ -120,7 +114,7 @@ export function createSpeaker({ onStart, onEnd, onLevel } = {}) {
   async function fetchAudio(text, lang, role) {
     const res = await fetch('/api/tts', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...keyHeaders() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, lang, role }),
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'TTS failed')
