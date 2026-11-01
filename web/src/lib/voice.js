@@ -87,6 +87,8 @@ export function sentences(text) {
   return (text.match(/[^.!?।\n]+[.!?।]*/g) || [text]).map((s) => s.trim()).filter(Boolean)
 }
 
+let ttsQueue = Promise.resolve()
+
 /**
  * Timbre speaker with a queue and instant stop (for barge-in).
  */
@@ -117,14 +119,32 @@ export function createSpeaker({ onStart, onEnd, onLevel } = {}) {
     raf = requestAnimationFrame(meter)
   }
 
-  async function fetchAudio(text, lang, role) {
+  async function fetchOnce(text, lang, role) {
     const res = await fetch(API_BASE + '/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, lang, role }),
     })
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'TTS failed')
+    if (res.status === 429 || res.status === 502) {
+      const e = new Error('busy'); e.busy = true; throw e
+    }
+    if (!res.ok) throw new Error('Voice is unavailable right now. The text is on screen.')
     return res.arrayBuffer()
+  }
+
+  // Gnani allows one TTS request at a time per key, so every request goes
+  // through one queue, with a couple of polite retries when it's busy.
+  function fetchAudio(text, lang, role) {
+    const run = ttsQueue.then(async () => {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try { return await fetchOnce(text, lang, role) } catch (e) {
+          if (!e.busy || attempt === 2) throw e.busy ? new Error('Voice is busy for a moment. The text is on screen.') : e
+          await new Promise((r) => setTimeout(r, 700 * (attempt + 1)))
+        }
+      }
+    })
+    ttsQueue = run.catch(() => {})
+    return run
   }
 
   async function speak(text, { lang = 'hi', role = 'sahay' } = {}) {
@@ -132,15 +152,15 @@ export function createSpeaker({ onStart, onEnd, onLevel } = {}) {
     const c = ensure()
     if (c.state === 'suspended') await c.resume()
     const parts = sentences(text)
-    // start all requests now, play in order
-    const pending = parts.map((p) => fetchAudio(p, lang, role).catch((e) => e))
     onStart?.()
     cancelAnimationFrame(raf); meter()
     try {
-      for (const p of pending) {
-        const buf = await p
+      // fetch the next sentence while the current one plays (one request in flight)
+      let next = parts.length ? fetchAudio(parts[0], lang, role) : null
+      for (let i = 0; i < parts.length; i++) {
+        const buf = await next
         if (my !== token) return
-        if (buf instanceof Error) throw buf
+        next = i + 1 < parts.length ? fetchAudio(parts[i + 1], lang, role) : null
         const audio = await c.decodeAudioData(buf)
         if (my !== token) return
         await new Promise((resolve) => {
