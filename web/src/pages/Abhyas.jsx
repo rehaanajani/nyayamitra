@@ -255,12 +255,12 @@ export default function Abhyas({ status, params }) {
         </div>
         {!inCourt && (
           <div className="mx-auto mt-10 max-w-6xl px-5">
-            <div className="relative h-[260px] overflow-hidden rounded-[28px] shadow-[0_30px_60px_-30px_rgba(16,24,40,.45)] sm:h-[340px]">
-              <Scene name="scene-practice" eager alt="A young advocate in a black coat and bands rehearsing at night, a violet voice ribbon rising from his laptop" position="50% 38%" />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-ink/45" />
-              <div className="absolute bottom-6 right-6 max-w-xs text-right text-white sm:bottom-8 sm:right-8">
-                <div className="font-display text-2xl leading-tight sm:text-3xl">2 AM before the hearing.</div>
-                <div className="mt-1 text-sm text-white/80">No senior awake to practise with. The bench here never sleeps.</div>
+            <div className="relative h-[300px] overflow-hidden rounded-[28px] shadow-[0_30px_60px_-30px_rgba(16,24,40,.45)] sm:h-[420px]">
+              <Scene name="scene-practice" eager alt="A young advocate in a black coat and bands rehearsing at night, a violet voice ribbon rising from his laptop" position="50% 22%" />
+              <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_100%_0%,rgba(11,11,15,.72)_0%,rgba(11,11,15,.35)_38%,transparent_62%)]" />
+              <div className="absolute right-6 top-6 max-w-sm text-right text-white sm:right-10 sm:top-9">
+                <div className="font-display text-3xl leading-tight sm:text-[40px]">2 AM before the hearing.</div>
+                <div className="mt-2 text-[15px] text-white/85">No senior awake to practise with. This bench never sleeps.</div>
               </div>
             </div>
           </div>
