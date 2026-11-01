@@ -33,6 +33,7 @@ export default function App() {
   const route = useRoute()
   const [status, setStatus] = useState({})
   const [scrolled, setScrolled] = useState(false)
+  const [inCourt, setInCourt] = useState(false)   // a live hearing owns the whole screen
 
   useEffect(() => {
     api('/api/status').then(setStatus).catch(() => setStatus({ offline: true }))
@@ -90,11 +91,11 @@ export default function App() {
         >
           {page === 'home' && <Home status={status} />}
           {page === 'sahay' && <Sahay status={status} />}
-          {page === 'abhyas' && <Abhyas status={status} params={route.params} />}
+          {page === 'abhyas' && <Abhyas status={status} params={route.params} onCourt={setInCourt} />}
         </motion.main>
       </AnimatePresence>
 
-      <Footer />
+      {!(page === 'abhyas' && inCourt) && <Footer />}
     </div>
   )
 }

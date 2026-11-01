@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, Gavel, Landmark, Mic, MicOff, Plus, Scale, Send, Square, Timer } from 'lucide-react'
+import { ArrowLeft, FileText, Gavel, Landmark, Mic, MicOff, Plus, Scale, ScrollText, Send, Square, Timer, X } from 'lucide-react'
 import { api } from '../lib/api'
 import useVoice from '../lib/useVoice'
 import { FadeUp, LightField, Orb, Reveal, SectionLabel } from '../components/ui'
@@ -137,15 +137,15 @@ function TurnBanner({ phase, round, rounds, opponent }) {
 
 function Party({ label, name, text, live, waiting, tone }) {
   return (
-    <div className={`card flex min-h-[300px] flex-col p-6 ${tone === 'you' ? 'ring-1 ring-ink/10' : ''}`}>
+    <div className={`card flex min-h-[180px] flex-col overflow-hidden p-5 lg:min-h-0 ${tone === 'you' ? 'ring-1 ring-ink/10' : ''}`}>
       <div className="flex items-center gap-2">
         <span className={`h-2.5 w-2.5 rounded-full ${tone === 'you' ? 'bg-ink' : 'bg-[#e8590c]'}`} />
         <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">{label}</span>
       </div>
       <div className="mt-1 text-sm text-ink-2">{name}</div>
-      <div className="mt-5 flex-1">
+      <div className="scroll-soft mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
         {text ? (
-          <motion.p key={text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="font-display text-[22px] leading-snug text-ink">
+          <motion.p key={text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="font-display text-[20px] leading-snug text-ink">
             {text}{live && <span className="ml-1 inline-block h-5 w-[3px] animate-pulse bg-ink/50 align-middle" />}
           </motion.p>
         ) : waiting ? (
@@ -161,7 +161,7 @@ function Party({ label, name, text, live, waiting, tone }) {
 function ScoreBars({ scores }) {
   if (!scores) return null
   return (
-    <div className="mt-5 grid gap-3">
+    <div className="mt-3 grid gap-2">
       {AXES.map(([k, deva, en]) => (
         <div key={k}>
           <div className="flex items-center justify-between text-[12.5px] text-ink-2">
@@ -176,7 +176,7 @@ function ScoreBars({ scores }) {
           </div>
         </div>
       ))}
-      <div className="mt-1 flex items-center justify-between rounded-xl bg-white/70 px-4 py-2 text-sm">
+      <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-1.5 text-sm">
         <span>You <b className="text-lg">{avg(scores.you)}</b></span>
         <span className="text-muted">this round</span>
         <span><b className="text-lg text-[#b0623a]">{avg(scores.them)}</b> Them</span>
@@ -195,15 +195,15 @@ function MicOrb({ voice, canTalk }) {
       className="group relative grid place-items-center disabled:opacity-50"
       aria-label={voice.listening ? 'Stop the microphone' : 'Speak your argument'}
     >
-      <Orb tone="bench" level={level} active={live} size={170} />
-      <span className={`absolute grid h-16 w-16 place-items-center rounded-full shadow-lg transition group-hover:scale-105 ${voice.listening ? 'bg-ink text-white' : 'bg-white text-ink'}`}>
+      <Orb tone="bench" level={level} active={live} size={124} />
+      <span className={`absolute grid h-14 w-14 place-items-center rounded-full shadow-lg transition group-hover:scale-105 ${voice.listening ? 'bg-ink text-white' : 'bg-white text-ink'}`}>
         {voice.listening ? <Mic size={26} /> : <MicOff size={24} />}
       </span>
     </button>
   )
 }
 
-function Court({ matter, side, lang, temperament, status, onExit }) {
+function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
   const [rounds, setRounds] = useState([])           // [{ you, opponent, bench }]
   const [phase, setPhase] = useState('you')            // you | opponent | bench | done
   const [youNow, setYouNow] = useState('')
@@ -212,6 +212,7 @@ function Court({ matter, side, lang, temperament, status, onExit }) {
   const [seconds, setSeconds] = useState(0)
   const [debrief, setDebrief] = useState(null)
   const [text, setText] = useState('')
+  const [sheet, setSheet] = useState(null)          // record | file
   const roundsRef = useRef(rounds)
   roundsRef.current = rounds
   const phaseRef = useRef(phase)
@@ -224,6 +225,16 @@ function Court({ matter, side, lang, temperament, status, onExit }) {
   const me = matter.sides?.[side]
   const youAre = me ? `Counsel for the ${side}, ${me.name}` : matter.you_are
   const oppName = matter.sides ? `Senior counsel for the ${side === 'petitioner' ? 'respondent' : 'petitioner'}` : matter.opponent
+
+  // the hearing owns the screen until the verdict arrives
+  useEffect(() => { onLock(!debrief); return () => onLock(false) }, [debrief]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!sheet) return
+    const esc = (e) => { if (e.key === 'Escape') setSheet(null) }
+    document.addEventListener('keydown', esc)
+    return () => document.removeEventListener('keydown', esc)
+  }, [sheet])
 
   useEffect(() => {
     const t = setInterval(() => setSeconds((x) => x + 1), 1000)
@@ -304,41 +315,43 @@ function Court({ matter, side, lang, temperament, status, onExit }) {
   const ss = String(seconds % 60).padStart(2, '0')
 
   return (
-    <section className="mx-auto max-w-[1280px] px-5 pb-24">
+    <section className="mx-auto flex h-full max-w-[1280px] flex-col px-3 pb-3 pt-[84px] sm:px-5 sm:pb-5">
       {/* top bar */}
-      <div className="card flex flex-wrap items-center gap-4 px-6 py-4">
+      <div className="card flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3">
         <button onClick={onExit} className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><ArrowLeft size={14} /> Matters</button>
-        <div className="min-w-0">
-          <div className="font-display truncate text-xl leading-tight">{matter.title}</div>
-          <div className="text-xs text-muted">{matter.court}</div>
+        <div className="min-w-0 flex-1">
+          <div className="font-display truncate text-lg leading-tight">{matter.title}</div>
+          <div className="truncate text-xs text-muted">{matter.court}</div>
         </div>
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5">
           {Array.from({ length: total }).map((_, i) => (
             <span key={i} className={`grid h-7 w-7 place-items-center rounded-full text-xs font-medium ${i < rounds.length ? 'bg-ink text-white' : i === rounds.length && phase !== 'done' ? 'border-2 border-ink text-ink' : 'bg-canvas text-muted'}`}>{i + 1}</span>
           ))}
         </div>
         <div className="flex items-center gap-1.5 text-sm text-muted"><Timer size={14} /> {mm}:{ss}</div>
+        <button className="pill pill-light !py-2 text-sm" onClick={() => setSheet('record')}><ScrollText size={14} /> Record{rounds.length ? ` · ${rounds.length}` : ''}</button>
+        <button className="pill pill-light !py-2 text-sm" onClick={() => setSheet('file')}><FileText size={14} /> Case file</button>
         <button className="pill pill-dark !py-2 text-sm" onClick={() => end()} disabled={phase === 'done'}><Square size={13} /> End hearing</button>
       </div>
 
-      <div className="mt-6"><TurnBanner phase={phase} round={round} rounds={total} opponent={oppName} /></div>
+      <div className="mt-3"><TurnBanner phase={phase} round={round} rounds={total} opponent={oppName} /></div>
 
       {/* the courtroom: you, the bench, opposing counsel */}
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px_1fr]">
+      <div className="scroll-soft mt-3 grid min-h-0 flex-1 gap-3 overflow-y-auto lg:grid-cols-[1fr_360px_1fr] lg:gap-4 lg:overflow-visible">
         <Party label="You" name={youAre} text={youNow || voice.partial} live={!!voice.partial && !youNow} tone="you" />
 
-        <div className="card flex flex-col items-center bg-gradient-to-b from-lav/60 via-white/80 to-white p-6 text-center">
+        <div className="card scroll-soft flex min-h-0 flex-col items-center overflow-y-auto bg-gradient-to-b from-lav/60 via-white/80 to-white p-5 text-center">
           <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted"><span className="font-deva text-sm normal-case tracking-normal text-ink">न्यायाधीश</span> · The bench</div>
           <AnimatePresence mode="wait">
-            <motion.p key={bench.text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-3 min-h-[72px] text-[15.5px] leading-relaxed text-ink">
+            <motion.p key={bench.text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 text-[15px] leading-relaxed text-ink">
               {phase === 'bench' && !bench.text ? 'Considering…' : bench.text}
             </motion.p>
           </AnimatePresence>
           {bench.flags?.map((f, i) => f.type === 'old_citation' && (
             <span key={i} className="mt-1 rounded-full bg-warn/10 px-3 py-1 text-xs font-medium text-warn">{f.old} → {f.new}</span>
           ))}
-          <div className="mt-4"><MicOrb voice={voice} canTalk={canTalk} /></div>
-          <div className="mt-2 h-5 text-sm text-muted">
+          <div className="mt-3"><MicOrb voice={voice} canTalk={canTalk} /></div>
+          <div className="mt-1 h-5 text-sm text-muted">
             {!canTalk ? 'Voice is off · type below' : voice.speaking ? 'The court is speaking' : voice.listening ? 'Listening… talk any time' : 'Tap to speak'}
           </div>
           <div className="w-full text-left"><ScoreBars scores={bench.scores} /></div>
@@ -348,45 +361,75 @@ function Court({ matter, side, lang, temperament, status, onExit }) {
       </div>
 
       {/* type instead of speaking */}
-      <form className="card mt-6 flex gap-2 p-3" onSubmit={(e) => { e.preventDefault(); const v = text.trim(); if (v && phase === 'you') { setText(''); onPartial(v, 0).then((took) => { if (!took) onTurn(v) }) } }}>
-        <input value={text} onChange={(e) => setText(e.target.value)} disabled={phase !== 'you'} placeholder={phase !== 'you' ? 'Wait for your turn…' : matter.historic ? 'Type your submission, e.g. "My Lords, Article 368 gives the power to amend, not to destroy…"' : "Type your submission, e.g. 'My Lord, under Section 482 BNSS…'"} className="flex-1 rounded-full bg-transparent px-4 py-2.5 text-[15px] outline-none disabled:opacity-60" />
+      <form className="card relative mt-3 flex gap-2 p-2.5" onSubmit={(e) => { e.preventDefault(); const v = text.trim(); if (v && phase === 'you') { setText(''); onPartial(v, 0).then((took) => { if (!took) onTurn(v) }) } }}>
+        <input value={text} onChange={(e) => setText(e.target.value)} disabled={phase !== 'you'} placeholder={phase !== 'you' ? 'Wait for your turn…' : matter.historic ? 'Type your submission, e.g. "My Lords, Article 368 gives the power to amend, not to destroy…"' : "Type your submission, e.g. 'My Lord, under Section 482 BNSS…'"} className="min-w-0 flex-1 rounded-full bg-transparent px-4 py-2.5 text-[15px] outline-none disabled:opacity-60" />
         <button className="pill pill-dark !px-4" aria-label="Submit" disabled={phase !== 'you'}><Send size={16} /></button>
+        {voice.error && <p className="absolute -top-7 left-0 right-0 text-center text-sm text-warn">{voice.error}</p>}
       </form>
-      {voice.error && <p className="mt-3 text-center text-sm text-warn">{voice.error}</p>}
 
-      {/* round record */}
-      {rounds.length > 0 && (
-        <div className="mt-10">
-          <SectionLabel>Record of proceedings</SectionLabel>
-          <div className="mt-4 grid gap-3">
-            {rounds.map((r, i) => (
-              <div key={i} className="card grid gap-4 p-5 md:grid-cols-[70px_1fr_1fr_1fr]">
-                <div className="font-display text-3xl text-muted">{i + 1}</div>
-                <div><div className="text-[11px] uppercase tracking-wider text-muted">You · {avg(r.bench.scores.you)}</div><p className="mt-1 text-sm">{r.you}</p></div>
-                <div><div className="text-[11px] uppercase tracking-wider text-[#b0623a]">Opposing counsel · {avg(r.bench.scores.them)}</div><p className="mt-1 text-sm">{r.opponent}</p></div>
-                <div><div className="text-[11px] uppercase tracking-wider text-muted">Bench</div><p className="mt-1 text-sm text-ink-2">{r.bench.text}</p></div>
+      {/* record of proceedings and case file open as a side sheet, so the court never scrolls */}
+      <AnimatePresence>
+        {sheet && (
+          <>
+            <motion.div key="veil" className="fixed inset-0 z-40 bg-ink/20 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSheet(null)} />
+            <motion.aside
+              key="sheet"
+              className="scroll-soft fixed inset-y-3 right-3 z-50 w-[min(92vw,480px)] overflow-y-auto rounded-[28px] border border-line bg-white p-6 shadow-[0_30px_80px_-20px_rgba(16,24,40,.45)]"
+              initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 40, opacity: 0 }} transition={{ duration: 0.25 }}
+            >
+              <div className="flex items-center justify-between">
+                <SectionLabel>{sheet === 'record' ? 'Record of proceedings' : 'Case file'}</SectionLabel>
+                <button onClick={() => setSheet(null)} className="grid h-9 w-9 place-items-center rounded-full hover:bg-canvas" aria-label="Close"><X size={16} /></button>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* case file */}
-      <details className="card mt-6 p-5 text-sm">
-        <summary className="cursor-pointer font-medium">Case file {me ? '· your strongest points' : ''}</summary>
-        {me && <ul className="mt-3 grid gap-1.5 text-ink-2">{me.key_args.map((f) => <li key={f}>• {f}</li>)}</ul>}
-        <ul className="mt-3 grid gap-1.5 text-ink-2">{matter.facts.map((f) => <li key={f}>• {f}</li>)}</ul>
-      </details>
+              {sheet === 'record' ? (
+                rounds.length ? (
+                  <div className="mt-4 grid gap-3">
+                    {rounds.map((r, i) => (
+                      <div key={i} className="rounded-2xl bg-canvas p-4">
+                        <div className="font-display text-2xl text-muted">Round {i + 1}</div>
+                        <div className="mt-2 text-[11px] uppercase tracking-wider text-muted">You · {avg(r.bench.scores.you)}</div><p className="mt-1 text-sm">{r.you}</p>
+                        <div className="mt-3 text-[11px] uppercase tracking-wider text-[#b0623a]">Opposing counsel · {avg(r.bench.scores.them)}</div><p className="mt-1 text-sm">{r.opponent}</p>
+                        <div className="mt-3 text-[11px] uppercase tracking-wider text-muted">Bench</div><p className="mt-1 text-sm text-ink-2">{r.bench.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : <p className="mt-4 text-sm text-muted">Nothing on record yet. Finish round 1 and it appears here.</p>
+              ) : (
+                <div className="mt-4 text-sm">
+                  <div className="font-display text-xl">{matter.title}</div>
+                  <div className="mt-1 text-muted">{matter.court}</div>
+                  {me && <><div className="mt-5 font-medium">Your strongest points</div><ul className="mt-2 grid gap-1.5 text-ink-2">{me.key_args.map((f) => <li key={f}>• {f}</li>)}</ul></>}
+                  <div className="mt-5 font-medium">Facts</div>
+                  <ul className="mt-2 grid gap-1.5 text-ink-2">{matter.facts.map((f) => <li key={f}>• {f}</li>)}</ul>
+                  {matter.bench_focus && <><div className="mt-5 font-medium">What the bench will press you on</div><ul className="mt-2 grid gap-1.5 text-ink-2">{matter.bench_focus.map((f) => <li key={f}>• {f}</li>)}</ul></>}
+                </div>
+              )}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
     </section>
   )
 }
 
-export default function Abhyas({ status, params }) {
+export default function Abhyas({ status, params, onCourt }) {
   const [matter, setMatter] = useState(null)
   const [lang] = useLang()
   const [temperament, setTemperament] = useState('fair')
   const [inCourt, setInCourt] = useState(false)
   const [side, setSide] = useState('petitioner')
+  const [locked, setLocked] = useState(false)
+
+  useEffect(() => {
+    onCourt?.(locked)
+    if (!locked) return
+    window.scrollTo(0, 0)
+    const root = document.documentElement
+    const prev = root.style.overflow
+    root.style.overflow = 'hidden'
+    return () => { root.style.overflow = prev }
+  }, [locked]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => onCourt?.(false), []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function pick(c) {
     setMatter(c); setSide('petitioner')
@@ -395,13 +438,22 @@ export default function Abhyas({ status, params }) {
 
   return (
     <div>
+      {inCourt && matter ? (
+        <div className={`relative wash grain ${locked ? 'h-[100dvh] overflow-hidden' : 'min-h-screen pb-24 pt-28'}`}>
+          <div className="rays pointer-events-none absolute -inset-[40%] opacity-80" />
+          <div className="relative h-full">
+            <Court matter={matter} side={side} lang={lang} temperament={temperament} status={status} onLock={setLocked} onExit={() => { setInCourt(false); setMatter(null) }} />
+          </div>
+        </div>
+      ) : (
+      <>
       <LightField className="pb-14 pt-32">
         <div className="mx-auto flex max-w-5xl flex-col items-center px-5 text-center">
           <Reveal text="अभ्यास" className="font-deva text-7xl leading-none sm:text-8xl" />
           <p className="font-display mt-4 max-w-2xl text-2xl text-ink-2 sm:text-3xl">It doesn't argue for you. It argues against you.</p>
           {!status.gnani && <span className="chip mt-5 !py-1.5">Voice is off · typing works</span>}
         </div>
-        {!inCourt && (
+        {(
           <div className="mx-auto mt-10 max-w-6xl px-5">
             <div className="grid overflow-hidden rounded-[28px] bg-[#1d1830] shadow-[0_30px_60px_-30px_rgba(16,24,40,.45)] md:grid-cols-[1.45fr_1fr]">
               <div className="aspect-[4/3]">
@@ -411,11 +463,16 @@ export default function Abhyas({ status, params }) {
                 <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/50">अभ्यास · Practice</div>
                 <div className="font-display mt-4 text-4xl leading-[1.08] sm:text-5xl">2 AM before the hearing.</div>
                 <p className="mt-4 max-w-sm text-[16px] leading-relaxed text-white/75">No senior awake to practise with. This bench never sleeps, and it argues back in your language.</p>
-                <div className="mt-6 flex flex-wrap gap-2 text-xs text-white/70">
-                  <span className="rounded-full border border-white/15 px-3 py-1">Opposing counsel</span>
-                  <span className="rounded-full border border-white/15 px-3 py-1">Bench scores every round</span>
-                  <span className="rounded-full border border-white/15 px-3 py-1">5 rounds · verdict</span>
-                </div>
+                {/* how a hearing runs: three quiet steps instead of tag chips */}
+                <ol className="mt-8 border-t border-white/10">
+                  {[['१', 'तर्क', 'You argue, by voice or text'], ['२', 'प्रतिवाद', 'Opposing counsel hits back'], ['३', 'निर्णय', 'The bench scores you both']].map(([n, deva, en]) => (
+                    <li key={n} className="flex items-baseline gap-4 border-b border-white/10 py-3">
+                      <span className="font-deva w-5 text-lg text-[#bdb9f7]">{n}</span>
+                      <span className="font-deva w-16 shrink-0 text-[15px] text-white">{deva}</span>
+                      <span className="text-[14px] text-white/60">{en}</span>
+                    </li>
+                  ))}
+                </ol>
               </div>
             </div>
           </div>
@@ -423,11 +480,7 @@ export default function Abhyas({ status, params }) {
       </LightField>
 
       <AnimatePresence mode="wait">
-        {inCourt && matter ? (
-          <motion.div key="court" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <Court matter={matter} side={side} lang={lang} temperament={temperament} status={status} onExit={() => { setInCourt(false); setMatter(null) }} />
-          </motion.div>
-        ) : matter ? (
+        {matter ? (
           <motion.section key="setup" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mx-auto max-w-3xl px-5 pb-24">
             <div className="card p-8">
               <button onClick={() => setMatter(null)} className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><ArrowLeft size={14} /> All matters</button>
@@ -468,7 +521,7 @@ export default function Abhyas({ status, params }) {
                 <div className="text-sm font-medium">What the bench will press you on</div>
                 <ul className="mt-2 grid gap-1 text-sm text-ink-2">{matter.bench_focus.map((f) => <li key={f}>• {f}</li>)}</ul>
               </div>
-              <button className="pill pill-dark mt-8" onClick={() => { setInCourt(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }}><Gavel size={16} /> Enter court</button>
+              <button className="pill pill-dark mt-8" onClick={() => { window.scrollTo(0, 0); setInCourt(true) }}><Gavel size={16} /> Enter court</button>
             </div>
           </motion.section>
         ) : (
@@ -477,6 +530,8 @@ export default function Abhyas({ status, params }) {
           </motion.div>
         )}
       </AnimatePresence>
+      </>
+      )}
     </div>
   )
 }
