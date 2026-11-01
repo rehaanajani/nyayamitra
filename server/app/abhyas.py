@@ -12,6 +12,7 @@ import uuid
 
 from . import llm
 from .config import Keys
+from .hindi import to_digits
 
 _dir = os.path.join(os.path.dirname(__file__), "knowledge")
 with open(os.path.join(_dir, "cases.json"), encoding="utf-8") as f:
@@ -63,16 +64,18 @@ def opening(lang: str) -> str:
 
 def find_old_citations(text: str) -> list[dict]:
     """Return repealed sections cited in `text`, with their replacements."""
-    norm = re.sub(r"[.\s]+", " ", text.lower())
+    norm = re.sub(r"[.\s]+", " ", to_digits(text).lower())
     norm = norm.replace("सीआरपीसी", "crpc").replace("आईपीसी", "ipc").replace("cr p c", "crpc").replace("i p c", "ipc")
     hits = []
     for m in STATUTE_MAP:
         act, sec = m["old"].rsplit(" ", 1)
         act_l = act.lower()
         sec_l = sec.lower()
+        # allow a couple of joining words: "IPC की section 498A", "438 of the CrPC"
+        gap = r"(?:\s*\S+){0,2}?\s*"
         patterns = [
-            rf"\b{act_l}\s*(section|sec|धारा)?\s*{sec_l}\b",
-            rf"\b(section|sec|धारा)?\s*{sec_l}\s*(of\s*(the\s*)?)?{act_l}\b",
+            rf"\b{act_l}{gap}(?:section|sec)?\s*{sec_l}(?![\d])",
+            rf"(?<![\d]){sec_l}{gap}{act_l}\b",
         ]
         if any(re.search(p, norm) for p in patterns):
             hits.append(m)
