@@ -12,14 +12,38 @@ const BACKGROUNDS = [
   'linear-gradient(125deg, #fcf7f2 0%, #ffffff 40%, #a2ebfc 85%, #bdb9f7 100%)',
 ]
 
+/** macOS window controls with their glyphs: close, minimise, full screen. */
+function TrafficLights() {
+  const dot = (fill, rim) => (
+    <>
+      <circle cx="7" cy="7" r="6.4" fill={fill} />
+      <circle cx="7" cy="7" r="6.4" fill="none" stroke={rim} strokeWidth=".8" />
+    </>
+  )
+  return (
+    <div className="flex items-center gap-2" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 14 14">
+        {dot('#ff5f57', '#e0443e')}
+        <path d="M4.6 4.6 9.4 9.4M9.4 4.6 4.6 9.4" stroke="#4d0000" strokeWidth="1.3" strokeLinecap="round" />
+      </svg>
+      <svg width="14" height="14" viewBox="0 0 14 14">
+        {dot('#febc2e', '#dea123')}
+        <path d="M4 7h6" stroke="#985712" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+      <svg width="14" height="14" viewBox="0 0 14 14">
+        {dot('#28c840', '#1aab29')}
+        <path d="M4.3 9.7V5.6l4.1 4.1zM9.7 4.3v4.1L5.6 4.3z" fill="#006500" />
+      </svg>
+    </div>
+  )
+}
+
 function Window({ title, children }) {
   return (
     // frosted macOS-style window: the card's gradient glows through the glass
     <div className="w-full max-w-[600px] overflow-hidden rounded-[22px] border border-white/70 bg-white/55 shadow-[0_40px_80px_-30px_rgba(16,24,40,.40),inset_0_1px_0_rgba(255,255,255,.9)] ring-1 ring-ink/5 backdrop-blur-2xl backdrop-saturate-150">
       <div className="flex items-center gap-2 border-b border-white/60 bg-white/40 px-5 py-3.5">
-        <span className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-[inset_0_0_0_.5px_rgba(0,0,0,.12)]" />
-        <span className="h-3 w-3 rounded-full bg-[#febc2e] shadow-[inset_0_0_0_.5px_rgba(0,0,0,.12)]" />
-        <span className="h-3 w-3 rounded-full bg-[#28c840] shadow-[inset_0_0_0_.5px_rgba(0,0,0,.12)]" />
+        <TrafficLights />
         <span className="ml-3 text-[15px] font-medium text-ink-2">{title}</span>
       </div>
       <div className="p-7">{children}</div>
