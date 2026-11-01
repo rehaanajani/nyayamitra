@@ -55,9 +55,8 @@ export default function App() {
             scrolled ? 'border-line/80 bg-white/80 shadow-[0_8px_30px_-12px_rgba(16,24,40,.18)] backdrop-blur-xl' : 'border-transparent bg-white/40 backdrop-blur-md'
           }`}
         >
-          <a href="#/" className="flex items-center gap-2.5 pl-1">
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-ink font-deva text-lg leading-none text-white">न्</span>
-            <span className="font-deva text-2xl leading-none">न्यायमित्र</span>
+          <a href="#/" className="flex items-center pl-3" aria-label="Nyayamitra home">
+            <span className="font-deva text-[26px] leading-none">न्यायमित्र</span>
           </a>
 
           <nav className="mx-auto hidden items-center gap-1 rounded-full bg-canvas/80 p-1 md:flex">
