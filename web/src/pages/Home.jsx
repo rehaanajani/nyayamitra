@@ -105,12 +105,6 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-          <span><span className="font-deva text-ink">न्यायमित्र</span> gives legal information, not legal advice. In danger? Call 112.</span>
-          <span>Free legal aid: NALSA 15100 · Cyber fraud: 1930</span>
-        </div>
-      </footer>
     </>
   )
 }
