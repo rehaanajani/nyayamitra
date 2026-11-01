@@ -1,20 +1,5 @@
 import { motion } from 'motion/react'
 import { ArrowUpRight } from 'lucide-react'
-import Mitra from './Mitra'
-
-/** Mitra peeks over the bottom edge of the footer card. */
-function Peeker() {
-  return (
-    <div className="absolute bottom-0 left-1/2 w-[230px] -translate-x-1/2 sm:w-[280px]">
-      <div className="relative">
-        <Mitra width="100%" />
-        <motion.div className="absolute -right-24 top-4 whitespace-nowrap rounded-full rounded-bl-sm bg-ink px-3 py-1.5 text-sm text-white" animate={{ rotate: [-3, 3, -3] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}>
-          <span className="font-deva">नमस्ते, मैं मित्र!</span>
-        </motion.div>
-      </div>
-    </div>
-  )
-}
 
 const COLUMNS = [
   {
@@ -34,14 +19,13 @@ const COLUMNS = [
 export default function Footer() {
   return (
     <footer className="px-3 pb-3 pt-44 sm:px-5 sm:pb-5">
-      <div className="relative mx-auto max-w-[1360px] rounded-[32px] bg-ink px-6 pb-8 pt-64 text-white sm:rounded-[44px] sm:px-12 sm:pt-[19rem]">
+      <div className="relative mx-auto max-w-[1360px] rounded-[32px] bg-ink px-6 pb-8 pt-44 text-white sm:rounded-[44px] sm:px-12 sm:pt-52">
         <div className="absolute inset-x-4 -top-32 mx-auto max-w-4xl overflow-hidden rounded-[32px] wash shadow-[0_30px_60px_-20px_rgba(11,11,15,.45)] sm:inset-x-10 sm:-top-36 sm:rounded-[44px]">
           <div className="rays absolute -inset-[40%] opacity-70" />
-          <div className="relative flex h-[22rem] flex-col items-center px-6 pt-8 text-center sm:h-[25rem] sm:pt-9">
+          <div className="relative flex h-60 flex-col items-center justify-center px-6 text-center sm:h-72">
             <div className="font-deva text-4xl text-ink sm:text-6xl">न्याय सबका है।</div>
             <div className="font-display mt-2 text-lg text-ink-2 sm:text-2xl">Justice should speak your language.</div>
           </div>
-          <Peeker />
         </div>
 
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
