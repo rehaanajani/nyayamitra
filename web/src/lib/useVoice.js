@@ -48,6 +48,26 @@ export default function useVoice({ lang, onTurn, onPartial }) {
     try { await cb.current.onTurn(text) } finally { busy.current = false }
   }, [])
 
+  const lastInterim = useRef('')
+  const suppress = useRef(false)
+
+  // returns true if onPartial took the floor (e.g. the judge interrupted)
+  const offerPartial = useCallback(async (soFar) => {
+    if (!cb.current.onPartial) return false
+    const secs = started.current ? (Date.now() - started.current) / 1000 : 0
+    const took = await cb.current.onPartial(soFar, secs)
+    if (took) {
+      // drop the rest of this utterance; it was answered by the interruption
+      suppress.current = true
+      clearTimeout(timer.current)
+      buffer.current = []
+      started.current = 0
+      lastInterim.current = ''
+      setPartial('')
+    }
+    return took
+  }, [])
+
   const say = useCallback(async (text, opts) => {
     try { await speaker.current.speak(text, opts) } catch (e) { setError(e.message) }
   }, [])
@@ -64,24 +84,28 @@ export default function useVoice({ lang, onTurn, onPartial }) {
         onSpeechStart: () => {
           // barge-in: the user talks over the AI
           if (speaker.current.speaking) speaker.current.stop()
+          suppress.current = false
           clearTimeout(timer.current)
           if (!started.current) started.current = Date.now()
         },
-        onSegment: async (text) => {
-          buffer.current.push(text)
-          const soFar = buffer.current.join(' ')
+        onInterim: async (text) => {
+          if (suppress.current) return
+          // live text while still speaking; lets the bench cut in mid-sentence
+          const soFar = [...buffer.current, text].join(' ')
+          if (soFar === lastInterim.current) return
+          lastInterim.current = soFar
           setPartial(soFar)
           clearTimeout(timer.current)
-          if (cb.current.onPartial) {
-            const secs = started.current ? (Date.now() - started.current) / 1000 : 0
-            const took = await cb.current.onPartial(soFar, secs)
-            if (took) {
-              buffer.current = []
-              started.current = 0
-              setPartial('')
-              return
-            }
-          }
+          if (await offerPartial(soFar)) return
+        },
+        onSegment: async (text) => {
+          if (suppress.current) return
+          buffer.current.push(text)
+          const soFar = buffer.current.join(' ')
+          lastInterim.current = ''
+          setPartial(soFar)
+          clearTimeout(timer.current)
+          if (await offerPartial(soFar)) return
           timer.current = setTimeout(flush, END_OF_TURN_MS)
         },
       })
