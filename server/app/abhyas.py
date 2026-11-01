@@ -44,12 +44,30 @@ def list_cases() -> list[dict]:
     return [_public(c) for c in list(CASES.values()) + list(CUSTOM_CASES.values())]
 
 
-def get_case(case_id: str) -> dict | None:
-    return CASES.get(case_id) or CUSTOM_CASES.get(case_id)
+ROUNDS = 5  # like the original Supreme: five submissions, then the verdict
+
+
+def get_case(case_id: str, side: str | None = None) -> dict | None:
+    case = CASES.get(case_id) or CUSTOM_CASES.get(case_id)
+    if not case or "sides" not in case:
+        return case
+    # landmark cases: the user argues one side, the AI argues the other
+    mine = side if side in ("petitioner", "respondent") else "petitioner"
+    theirs = "respondent" if mine == "petitioner" else "petitioner"
+    me, them = case["sides"][mine], case["sides"][theirs]
+    return case | {
+        "side": mine,
+        "you_are": f"Counsel for the {mine}, {me['name']} ({me['position']})",
+        "opponent": f"Senior counsel for the {theirs}, {them['name']}",
+        "my_args": me["key_args"],
+        "their_args": them["key_args"],
+    }
 
 
 def _public(c: dict) -> dict:
-    return {k: c[k] for k in ("id", "title", "court", "language", "stage", "you_are", "facts", "bench_focus", "opponent") if k in c} | {"custom": c["id"] in CUSTOM_CASES}
+    keys = ("id", "title", "court", "language", "stage", "you_are", "facts", "bench_focus", "opponent",
+            "kind", "year", "summary", "articles", "sides", "historic")
+    return {k: c[k] for k in keys if k in c} | {"custom": c["id"] in CUSTOM_CASES, "rounds": ROUNDS}
 
 
 def opening(lang: str) -> str:
@@ -87,9 +105,11 @@ def correction(hits: list[dict], lang: str) -> str:
     return lines.get(lang) or lines["en"]
 
 
-def interject(lang: str, partial: str, seconds: float) -> dict | None:
+def interject(lang: str, partial: str, seconds: float, case_id: str | None = None) -> dict | None:
     """Called while the user is still speaking. Returns a bench interruption or None."""
-    hits = find_old_citations(partial)
+    case = get_case(case_id) if case_id else None
+    # historic matters were argued under the IPC/CrPC, so those citations are correct there
+    hits = [] if case and case.get("historic") else find_old_citations(partial)
     if hits:
         return {"speaker": "judge", "text": correction(hits, lang), "flags": [{"type": "old_citation", **hits[0]}]}
     if seconds > 45:
@@ -103,28 +123,37 @@ def interject(lang: str, partial: str, seconds: float) -> dict | None:
     return None
 
 
-def _fallback_bench(case: dict, lang: str, turn_no: int) -> dict:
-    focus = case["bench_focus"][turn_no % len(case["bench_focus"])]
+def _fallback_bench(case: dict, lang: str, turn_no: int, speaker: str = "judge") -> dict:
+    """Rule-based turn for when no model is available (or the free quota is spent)."""
+    if speaker == "opponent" and case.get("their_args"):
+        arg = case["their_args"][(turn_no // 2) % len(case["their_args"])]
+        return {"speaker": "opponent", "text": f"My Lords, with respect to my learned friend: {arg}", "flags": []}
+    focus = case["bench_focus"][turn_no % len(case["bench_focus"])].rstrip("?")
     text = {
         "hi": f"ठीक है। लेकिन यह बताइए: {focus}?",
         "ta": f"சரி. ஆனால் இதைச் சொல்லுங்கள்: {focus}?",
         "en": f"All right. But tell me this: {focus}?",
-    }.get(lang, focus)
+    }.get(lang) or f"All right. But tell me this: {focus}?"
     return {"speaker": "judge", "text": text, "flags": []}
 
 
 async def bench_turn(keys: Keys, case_id: str, lang: str, temperament: str,
-                     history: list[dict], text: str) -> dict:
-    case = get_case(case_id)
+                     history: list[dict], text: str, side: str | None = None) -> dict:
+    case = get_case(case_id, side)
     if not case:
         raise ValueError("unknown case")
-    hits = find_old_citations(text)
+    historic = case.get("historic", False)
+    hits = [] if historic else find_old_citations(text)
     if hits:
         return {"speaker": "judge", "text": correction(hits, lang), "flags": [{"type": "old_citation", **h} for h in hits]}
 
     user_turns = sum(1 for h in history if h["role"] == "user")
-    # every third turn the opponent rebuts, otherwise the bench questions
-    speaker = "opponent" if user_turns % 3 == 2 else "judge"
+    if "sides" in case:
+        # Supreme-style: opposing counsel answers first, then the bench presses
+        speaker = "opponent" if user_turns % 2 == 0 else "judge"
+    else:
+        # district court: the bench leads, opposing counsel rebuts every third turn
+        speaker = "opponent" if user_turns % 3 == 2 else "judge"
     tone = {
         "strict": "impatient and sharp; interrupts weak points; asks for authority",
         "fair": "firm but fair; probes the weakest point",
@@ -134,7 +163,15 @@ async def bench_turn(keys: Keys, case_id: str, lang: str, temperament: str,
         f"You are the presiding officer in {case['court']}. Temperament: {tone}."
         if speaker == "judge" else
         f"You are {case['opponent']} in {case['court']}, opposing the user. Rebut their last point using the case facts."
+        + (f" Your side's strongest arguments: {json.dumps(case['their_args'], ensure_ascii=False)}" if case.get("their_args") else "")
     )
+    law_rule = (
+        "This is a historic case: argue it under the law as it stood before judgment (IPC, CrPC and older citations are correct here). "
+        "Stay strictly neutral and respectful about religion, community and identity; argue law and evidence only."
+        if historic else
+        "Use only BNS, BNSS and BSA section numbers (the IPC, CrPC and Evidence Act are repealed)."
+    )
+    court_style = "the Supreme Court of India" if "sides" in case else "a real Indian district court"
     system = f"""{role}
 Matter: {case['title']}. Stage: {case['stage']}.
 The user is: {case['you_are']}.
@@ -142,9 +179,9 @@ Case facts: {json.dumps(case['facts'], ensure_ascii=False)}
 Points the bench cares about: {json.dumps(case['bench_focus'], ensure_ascii=False)}
 
 Speak in {speech_style(lang)}. If that language is not Hindi, Tamil or English, still speak it the way a local district court would.
-Reply with ONE or TWO short spoken sentences, like a real Indian district court: no greetings, no lists, no markdown.
+Reply with ONE or TWO short spoken sentences, like {court_style}: no greetings, no lists, no markdown.
 {"Ask exactly one pointed question that tests the user's last submission." if speaker == "judge" else "End by pointing at the gap in their argument."}
-Address the advocate respectfully as "counsel" (in Hindi use आप, never तुम or तू). Use only BNS, BNSS and BSA section numbers (the IPC, CrPC and Evidence Act are repealed). Never invent case names; if you need authority, ask the user for it."""
+Address the advocate respectfully as "counsel" (in Hindi use आप, never तुम or तू). {law_rule} Never invent case names; if you need authority, ask the user for it."""
     msgs = [{"role": "system", "content": system}]
     for h in history[-10:]:
         msgs.append({"role": "user" if h["role"] == "user" else "assistant", "content": h["text"]})
@@ -156,7 +193,7 @@ Address the advocate respectfully as "counsel" (in Hindi use आप, never त�
             return {"speaker": speaker, "text": out, "flags": []}
     except Exception:  # no model, quota spent or timeout: keep the hearing going
         pass
-    return _fallback_bench(case, lang, user_turns)
+    return _fallback_bench(case, lang, user_turns, speaker)
 
 
 def _count_fillers(lang: str, texts: list[str]) -> dict:
@@ -169,12 +206,13 @@ def _count_fillers(lang: str, texts: list[str]) -> dict:
     return counts
 
 
-async def debrief(keys: Keys, case_id: str, lang: str, history: list[dict]) -> dict:
-    case = get_case(case_id) or {}
+async def debrief(keys: Keys, case_id: str, lang: str, history: list[dict], side: str | None = None) -> dict:
+    case = get_case(case_id, side) or {}
     user_texts = [h["text"] for h in history if h["role"] == "user"]
     old = []
-    for t in user_texts:
-        old += find_old_citations(t)
+    if not case.get("historic"):
+        for t in user_texts:
+            old += find_old_citations(t)
     fillers = _count_fillers(lang, user_texts)
     words = sum(len(t.split()) for t in user_texts)
 
