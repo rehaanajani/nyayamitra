@@ -14,20 +14,23 @@ const BACKGROUNDS = [
 
 function Window({ title, children }) {
   return (
-    <div className="w-full max-w-[460px] overflow-hidden rounded-2xl border border-line bg-white shadow-[0_30px_60px_-30px_rgba(16,24,40,.35)]">
-      <div className="flex items-center gap-1.5 border-b border-line px-4 py-2.5">
-        <span className="h-2.5 w-2.5 rounded-full bg-[#e4e7ec]" /><span className="h-2.5 w-2.5 rounded-full bg-[#e4e7ec]" /><span className="h-2.5 w-2.5 rounded-full bg-[#e4e7ec]" />
-        <span className="ml-2 text-[11px] font-medium text-muted">{title}</span>
+    // frosted macOS-style window: the card's gradient glows through the glass
+    <div className="w-full max-w-[600px] overflow-hidden rounded-[22px] border border-white/70 bg-white/55 shadow-[0_40px_80px_-30px_rgba(16,24,40,.40),inset_0_1px_0_rgba(255,255,255,.9)] ring-1 ring-ink/5 backdrop-blur-2xl backdrop-saturate-150">
+      <div className="flex items-center gap-2 border-b border-white/60 bg-white/40 px-5 py-3.5">
+        <span className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-[inset_0_0_0_.5px_rgba(0,0,0,.12)]" />
+        <span className="h-3 w-3 rounded-full bg-[#febc2e] shadow-[inset_0_0_0_.5px_rgba(0,0,0,.12)]" />
+        <span className="h-3 w-3 rounded-full bg-[#28c840] shadow-[inset_0_0_0_.5px_rgba(0,0,0,.12)]" />
+        <span className="ml-3 text-[15px] font-medium text-ink-2">{title}</span>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-7">{children}</div>
     </div>
   )
 }
 
 function Bubble({ who, children, dark, tint }) {
   return (
-    <div className={`max-w-[88%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed ${dark ? 'ml-auto rounded-br-md bg-ink text-white' : `mr-auto rounded-bl-md border border-line ${tint || 'bg-white'}`}`}>
-      <div className={`mb-0.5 text-[10px] font-medium uppercase tracking-wider ${dark ? 'text-white/55' : 'text-muted'}`}>{who}</div>
+    <div className={`max-w-[88%] rounded-2xl px-5 py-3 text-[15px] leading-relaxed ${dark ? 'ml-auto rounded-br-md bg-ink text-white' : `mr-auto rounded-bl-md border border-white/70 ${tint || 'bg-white/80'}`}`}>
+      <div className={`mb-0.5 text-[11px] font-medium uppercase tracking-wider ${dark ? 'text-white/55' : 'text-muted'}`}>{who}</div>
       {children}
     </div>
   )
@@ -35,7 +38,7 @@ function Bubble({ who, children, dark, tint }) {
 
 function Wave() {
   return (
-    <div className="flex h-8 items-center gap-[3px]">
+    <div className="flex h-10 items-center gap-[3px]">
       {Array.from({ length: 28 }).map((_, i) => (
         <motion.span
           key={i}
@@ -54,7 +57,7 @@ const STEPS = [
     body: 'Hindi, Tamil, Hinglish, a noisy street, a bad phone line. Gnani Prisma hears it, and सहाय asks one calm question at a time.',
     ui: (
       <Window title="सहाय · call in progress">
-        <div className="mb-4 flex items-center gap-3 rounded-xl bg-canvas px-3 py-2"><Phone size={14} className="text-violet-deep" /><Wave /><span className="ml-auto text-[11px] text-muted">00:42</span></div>
+        <div className="mb-5 flex items-center gap-3 rounded-xl bg-white/60 px-4 py-2.5"><Phone size={14} className="text-violet-deep" /><Wave /><span className="ml-auto text-[12.5px] text-muted">00:42</span></div>
         <div className="grid gap-2">
           <Bubble who="You" dark>Boss ne teen mahine se salary nahi di, aur ab phone bhi nahi utha raha.</Bubble>
           <Bubble who="सहाय">समझ रही हूँ। कोई proof है? Salary slip, bank credit या WhatsApp messages?</Bubble>
@@ -67,11 +70,11 @@ const STEPS = [
     body: 'Where to go, what to carry, the deadline, the cost, and the free legal aid number. The law comes from a checked book, never from the model\'s memory.',
     ui: (
       <Window title="मार्ग · your path">
-        <div className="font-display text-xl leading-snug">Salary or wages not paid</div>
-        <div className="mt-1.5 flex items-start gap-2 text-[12px] text-ink-2"><Landmark size={14} className="mt-0.5 shrink-0" />Labour Department of your district</div>
+        <div className="font-display text-[28px] leading-snug">Salary or wages not paid</div>
+        <div className="mt-1.5 flex items-start gap-2 text-[14px] text-ink-2"><Landmark size={14} className="mt-0.5 shrink-0" />Labour Department of your district</div>
         <ol className="mt-4 grid gap-2.5">
           {['Ask in writing for the exact amount by a date', 'Send a legal notice: pay within 15 days', 'File a wage claim with the Labour Department'].map((s, i) => (
-            <li key={s} className="flex gap-3 text-[13px]"><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-ink text-[10px] text-white">{i + 1}</span>{s}</li>
+            <li key={s} className="flex gap-3 text-[15px]"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ink text-[12.5px] text-white">{i + 1}</span>{s}</li>
           ))}
         </ol>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -86,7 +89,7 @@ const STEPS = [
     body: 'A legal notice, a consumer complaint, a complaint to the SP when the police won\'t file an FIR. Print it, sign it, send it.',
     ui: (
       <Window title="लेख · legal notice">
-        <div className="space-y-2.5 font-serif text-[12.5px] leading-relaxed text-ink-2">
+        <div className="space-y-2.5 font-serif text-[14.5px] leading-relaxed text-ink-2">
           <p>To,<br />[Name of the employer]</p>
           <p className="font-medium text-ink">Subject: Legal notice demanding unpaid salary within 15 days</p>
           <p>I, Meena Kumari, was employed with you from March and have not been paid my salary for June, July and August, amounting to ₹54,000…</p>
@@ -105,7 +108,7 @@ const STEPS = [
           <Bubble who="You · interrupted" dark>My Lord, under Section 438 CrPC the applicant deserves—</Bubble>
           <Bubble who="Bench" tint="bg-gradient-to-br from-lav to-white">
             रुकिए counsel। CrPC 438? वो अब लागू नहीं है। Anticipatory bail के लिए BNSS 482 है।
-            <div className="mt-2 inline-flex rounded-full bg-warn/10 px-2.5 py-1 text-[11px] font-medium text-warn">CrPC 438 → BNSS 482</div>
+            <div className="mt-2 inline-flex rounded-full bg-warn/10 px-2.5 py-1 text-[12.5px] font-medium text-warn">CrPC 438 → BNSS 482</div>
           </Bubble>
         </div>
       </Window>
@@ -117,14 +120,14 @@ const STEPS = [
     ui: (
       <Window title="निर्णय · verdict">
         <div className="flex items-end gap-4">
-          <div className="font-display text-6xl leading-none">72</div>
-          <div className="pb-1 text-[12px] text-muted">out of 100 · 4m 12s</div>
+          <div className="font-display text-[84px] leading-none">72</div>
+          <div className="pb-1 text-[14px] text-muted">out of 100 · 4m 12s</div>
         </div>
         <div className="mt-4 grid gap-3">
           {[['विधि · Law', 64], ['तथ्य · Facts', 81], ['उत्तर · Bench', 70], ['वाणी · Delivery', 73]].map(([l, v]) => (
             <div key={l}>
-              <div className="flex justify-between text-[12px]"><span>{l}</span><span className="font-medium">{v}</span></div>
-              <div className="mt-1 h-1.5 rounded-full bg-canvas"><div className="h-full rounded-full bg-gradient-to-r from-violet to-royal" style={{ width: `${v}%` }} /></div>
+              <div className="flex justify-between text-[14px]"><span>{l}</span><span className="font-medium">{v}</span></div>
+              <div className="mt-1.5 h-2.5 rounded-full bg-white/70"><div className="h-full rounded-full bg-gradient-to-r from-violet to-royal" style={{ width: `${v}%` }} /></div>
             </div>
           ))}
         </div>
