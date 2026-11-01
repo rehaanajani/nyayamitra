@@ -1,6 +1,7 @@
 import { motion } from 'motion/react'
 import { ArrowRight, AudioLines, Gavel, PhoneCall, ScrollText, ShieldCheck } from 'lucide-react'
 import { FadeUp, LightField, Reveal, SectionLabel } from '../components/ui'
+import HowItWorks from '../components/HowItWorks'
 
 const DOORS = [
   {
@@ -84,6 +85,8 @@ export default function Home() {
           </FadeUp>
         ))}
       </section>
+
+      <HowItWorks />
 
       <section className="mx-auto max-w-6xl px-5 py-28">
         <FadeUp>
