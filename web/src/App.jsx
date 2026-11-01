@@ -98,7 +98,8 @@ export default function App() {
         </motion.main>
       </AnimatePresence>
 
-      {!(page === 'abhyas' && inCourt) && <Footer />}
+      {/* Sahay and a live hearing are one-screen apps: no footer */}
+      {page !== 'sahay' && !(page === 'abhyas' && inCourt) && <Footer />}
     </div>
   )
 }

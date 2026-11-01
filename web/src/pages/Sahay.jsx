@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
-import { Mic, MicOff, RotateCcw, Send } from 'lucide-react'
+import { Map, RotateCcw, Send } from 'lucide-react'
 import { api } from '../lib/api'
 import useVoice from '../lib/useVoice'
-import { LightField, Reveal } from '../components/ui'
-import Scene from '../components/Scene'
-import LanguageMenu from '../components/LanguageMenu'
 import { langInfo, useLang } from '../lib/lang'
 import Transcript from '../components/Transcript'
 import MargCard from '../components/MargCard'
+import MicOrb from '../components/MicOrb'
+import Sheet from '../components/Sheet'
 
 const EXAMPLES = {
   hi: ['मेरे boss ने 3 महीने से salary नहीं दी', 'Landlord deposit वापस नहीं कर रहा', 'UPI से 20 हज़ार कट गए, fraud call था', 'पुलिस FIR नहीं लिख रही'],
@@ -16,10 +15,9 @@ const EXAMPLES = {
   en: ['My salary hasn\'t been paid for 3 months', 'Landlord won\'t return my deposit', 'I lost ₹20,000 to a UPI scam call', 'Police refused to file my FIR'],
 }
 
-const ORB_LABEL = {
-  hi: ['बोल रही हूँ', 'सुन रही हूँ'],
-  ta: ['பேசுகிறேன்', 'கேட்கிறேன்'],
-  en: ['Speaking', 'Listening'],
+const LABELS = {
+  hi: { off: 'बोलने के लिए रिंग दबाएँ', listen: 'सुन रही हूँ · बोलिए', heard: 'सुन रही हूँ · रुकें या Done दबाएँ', speak: 'सहाय बोल रही है · बीच में बोल सकते हैं', think: 'सोच रही हूँ…' },
+  en: { off: 'Tap the ring to talk', listen: 'Listening · speak now', heard: 'Listening · pause or tap Done', speak: 'Sahay is speaking · talk to interrupt', think: 'Thinking…' },
 }
 
 export default function Sahay({ status }) {
@@ -28,13 +26,23 @@ export default function Sahay({ status }) {
   const [items, setItems] = useState([])
   const [state, setState] = useState({})
   const [card, setCard] = useState(null)
+  const [showCard, setShowCard] = useState(false)
   const [text, setText] = useState('')
   const [thinking, setThinking] = useState(false)
+  const [micOn, setMicOn] = useState(false)
   const stateRef = useRef(state)
   stateRef.current = state
   const itemsRef = useRef(items)
   itemsRef.current = items
-  const cardRef = useRef(null)
+
+  // one screen, like the courtroom: the page never scrolls
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    const root = document.documentElement
+    const prev = root.style.overflow
+    root.style.overflow = 'hidden'
+    return () => { root.style.overflow = prev }
+  }, [])
 
   async function handleTurn(userText) {
     setItems((x) => [...x, { role: 'user', text: userText }])
@@ -45,7 +53,7 @@ export default function Sahay({ status }) {
       setItems((x) => [...x, { role: 'sahay', text: r.reply }])
       if (r.card) {
         setCard({ ...r.card, factMap: r.state.facts })
-        setTimeout(() => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
+        setTimeout(() => setShowCard(true), 600)
       }
       if (canTalk) voice.say(r.reply, { lang, role: 'sahay' })
     } catch (e) {
@@ -57,18 +65,22 @@ export default function Sahay({ status }) {
 
   const voice = useVoice({ lang, onTurn: handleTurn })
 
-  async function begin() {
+  async function greet() {
     const g = await api(`/api/sahay/greeting?lang=${lang}`)
     setItems([{ role: 'sahay', text: g.reply }])
-    if (canTalk) {
-      await voice.start()
-      voice.say(g.reply, { lang, role: 'sahay' })
-    }
+    return g.reply
+  }
+
+  async function toggleMic() {
+    if (micOn) { setMicOn(false); voice.stop(); return }
+    setMicOn(true)
+    await voice.start()
+    if (!items.length) voice.say(await greet(), { lang, role: 'sahay' })
   }
 
   function reset() {
-    voice.stop(); voice.stopSpeaking()
-    setItems([]); setState({}); setCard(null); setText('')
+    voice.pause(); voice.stopSpeaking(); setMicOn(false)
+    setItems([]); setState({}); setCard(null); setShowCard(false); setText('')
   }
 
   useEffect(() => { reset() }, [lang]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -77,100 +89,75 @@ export default function Sahay({ status }) {
     const v = (t ?? text).trim()
     if (!v) return
     setText('')
-    if (!items.length) {
-      api(`/api/sahay/greeting?lang=${lang}`).then((g) => setItems([{ role: 'sahay', text: g.reply }])).then(() => handleTurn(v))
-    } else handleTurn(v)
+    if (!items.length) greet().then(() => handleTurn(v))
+    else handleTurn(v)
   }
 
   const started = items.length > 0
-  const orbLevel = voice.speaking ? voice.outLevel : voice.micLevel
+  const L = LABELS[lang] || LABELS.en
+  const label = !canTalk ? (status.gnani ? `Voice isn't available in ${langInfo(lang).english} yet · type` : 'Voice is off · typing works')
+    : thinking ? L.think
+    : voice.speaking ? L.speak
+    : !micOn ? L.off
+    : voice.partial ? L.heard
+    : L.listen
+  const tone = voice.speaking || thinking ? 'speak' : micOn ? 'go' : 'wait'
 
   return (
-    <div>
-      <LightField className="pb-16 pt-32">
-        <div className="mx-auto max-w-5xl px-5">
-          <div className="flex flex-col items-center text-center">
-            <Reveal text="सहाय" className="font-deva text-7xl leading-none sm:text-8xl" />
-            <p className="font-display mt-4 text-2xl text-ink-2 sm:text-3xl">Tell me what happened. In your words, in your language.</p>
-            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-line bg-white/80 py-1 pl-4 pr-1 text-sm text-ink-2">Speaking in <LanguageMenu align="left" /></div>
-          </div>
-
-          <div className="mt-10 grid items-start gap-8 lg:grid-cols-[340px_1fr]">
-            <div className="flex flex-col items-center gap-5">
-              <div className="relative grid w-[320px] place-items-center">
-                {/* soft glow that pulses with the voice behind Mitra */}
-                <motion.div
-                  className="absolute bottom-6 h-60 w-60 rounded-full blur-2xl"
-                  style={{ background: 'conic-gradient(from 90deg, #a2ebfc, #e2e0fb, #ffd3b7, #bdb9f7, #a2ebfc)' }}
-                  animate={{ scale: 1 + orbLevel * 0.45, opacity: voice.listening || voice.speaking ? 0.95 : 0.6 }}
-                  transition={{ duration: 0.15 }}
-                />
-                <img
-                  src="/brand/mitra.webp"
-                  alt="Mitra, a friendly lion in an advocate's coat, holding the Constitution of India"
-                  className="relative w-[310px]"
-                  style={{ WebkitMaskImage: 'linear-gradient(to bottom, #000 80%, transparent 100%)', maskImage: 'linear-gradient(to bottom, #000 80%, transparent 100%)' }}
-                />
-                <div className="relative h-5 text-sm text-muted">
-                  {voice.speaking ? (ORB_LABEL[lang] || ORB_LABEL.en)[0] : voice.listening ? (ORB_LABEL[lang] || ORB_LABEL.en)[1] : ''}
-                </div>
-              </div>
-              {!canTalk && (
-                <span className="chip !py-1.5">{status.gnani ? `Voice isn't available in ${langInfo(lang).english} yet · type below` : 'Voice is off · typing works'}</span>
-              )}
-              <div className="flex gap-3">
-                {!started ? (
-                  <button className="pill pill-dark" onClick={begin} disabled={!canTalk}><Mic size={16} /> Start talking</button>
-                ) : voice.listening ? (
-                  <button className="pill pill-dark" onClick={voice.stop}><MicOff size={16} /> Stop mic</button>
-                ) : (
-                  <button className="pill pill-dark" onClick={voice.start} disabled={!canTalk}><Mic size={16} /> Resume mic</button>
-                )}
-                {started && <button className="pill pill-light" onClick={reset}><RotateCcw size={16} /> New</button>}
-              </div>
-              {voice.error && <p className="max-w-xs text-center text-sm text-warn">{voice.error}</p>}
-              <p className="max-w-xs text-center text-xs text-muted">Talk over her any time and she'll stop and listen. If you're in danger, call 112.</p>
-            </div>
-
-            <div className="card flex h-[520px] flex-col p-5">
-              {!started ? (
-                <div className="flex flex-1 flex-col justify-center gap-3 p-4">
-                  <div className="text-sm text-muted">Try saying or typing:</div>
-                  {(EXAMPLES[lang] || EXAMPLES.en).map((e) => (
-                    <button key={e} onClick={() => sendText(e)} className="rounded-2xl border border-line bg-white px-4 py-3 text-left transition hover:border-ink">{e}</button>
-                  ))}
-                </div>
-              ) : (
-                <Transcript items={items} partial={voice.partial} className="flex-1 px-1" />
-              )}
-              {thinking && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-1 px-2 py-2">
-                  {[0, 1, 2].map((i) => <motion.span key={i} className="h-2 w-2 rounded-full bg-violet" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.12 }} />)}
-                </motion.div>
-              )}
-              <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); sendText() }}>
-                <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Or type here…" className="flex-1 rounded-full border border-line bg-white px-5 py-3 text-[15px] outline-none focus:border-violet" />
-                <button className="pill pill-dark !px-4" aria-label="Send"><Send size={16} /></button>
-              </form>
-            </div>
+    <div className="relative h-[100dvh] overflow-hidden wash grain">
+      <div className="rays pointer-events-none absolute -inset-[40%] opacity-80" />
+      <section className="relative mx-auto flex h-full max-w-[1180px] flex-col px-3 pb-3 pt-[84px] sm:px-5 sm:pb-5">
+        {/* top bar */}
+        <div className="card flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3">
+          <div className="font-deva text-3xl leading-none">सहाय</div>
+          <div className="hidden min-w-0 flex-1 truncate text-sm text-muted sm:block">Tell me what happened. In your words, in your language.</div>
+          <div className="ml-auto flex items-center gap-2">
+            {card && <button className="pill pill-dark !py-2 text-sm" onClick={() => setShowCard(true)}><Map size={14} /> <span className="font-deva">मार्ग</span> Your path</button>}
+            {started && <button className="pill pill-light !py-2 text-sm" onClick={reset}><RotateCcw size={14} /> New</button>}
           </div>
         </div>
-      </LightField>
 
-      {card && (
-        <section ref={cardRef} className="mx-auto max-w-4xl scroll-mt-24 px-5 pb-24">
-          <MargCard card={card} lang={lang} />
-          <div className="relative mt-6 h-64 overflow-hidden rounded-[24px] sm:h-72">
-            <Scene name="scene-legal-aid" alt="A woman meeting a legal-aid advocate across a desk in a sunlit office" position="45% 45%" sizes="(max-width: 900px) 100vw, 900px" />
-            <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/50 to-transparent" />
-            <div className="absolute left-6 top-1/2 max-w-xs -translate-y-1/2 sm:left-10">
-              <div className="font-display text-2xl leading-tight">You don't have to do this alone.</div>
-              <p className="mt-2 text-sm text-ink-2">Your District Legal Services Authority gives a free lawyer to eligible people.</p>
-              <a href="tel:15100" className="pill pill-dark mt-4 !py-2 text-sm">Call 15100</a>
-            </div>
+        <div className="mt-3 grid min-h-0 flex-1 gap-3 lg:grid-cols-[340px_1fr] lg:gap-4">
+          {/* the ring: tap to talk, and it always says what's happening */}
+          <div className="card flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-lav/60 via-white/80 to-white p-5 text-center">
+            <MicOrb voice={voice} on={micOn} onToggle={toggleMic} disabled={!canTalk} label={label} tone={tone} size={190} />
+            {voice.error && <p className="max-w-xs text-sm text-warn">{voice.error}</p>}
+            <p className="max-w-[16rem] text-xs text-muted">Talk over her any time and she'll stop and listen. If you're in danger, call 112.</p>
           </div>
-        </section>
-      )}
+
+          {/* the conversation */}
+          <div className="card flex min-h-0 flex-col p-4 sm:p-5">
+            {!started ? (
+              <div className="flex flex-1 flex-col justify-center gap-3 p-2">
+                <div className="text-sm text-muted">Try saying or typing:</div>
+                {(EXAMPLES[lang] || EXAMPLES.en).map((e) => (
+                  <button key={e} onClick={() => sendText(e)} className="rounded-2xl border border-line bg-white px-4 py-3 text-left transition hover:border-ink">{e}</button>
+                ))}
+              </div>
+            ) : (
+              <Transcript items={items} partial={voice.partial} className="scroll-soft min-h-0 flex-1 overflow-y-auto px-1" />
+            )}
+            {thinking && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-1 px-2 py-2">
+                {[0, 1, 2].map((i) => <motion.span key={i} className="h-2 w-2 rounded-full bg-violet" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.12 }} />)}
+              </motion.div>
+            )}
+            <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); sendText() }}>
+              <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Or type here…" className="min-w-0 flex-1 rounded-full border border-line bg-white px-5 py-3 text-[15px] outline-none focus:border-violet" />
+              <button className="pill pill-dark !px-4" aria-label="Send"><Send size={16} /></button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <Sheet open={showCard && !!card} title="मार्ग · Your path" onClose={() => setShowCard(false)}>
+        {card && <MargCard card={card} lang={lang} />}
+        <div className="mt-4 rounded-2xl bg-canvas p-5">
+          <div className="font-display text-xl">You don't have to do this alone.</div>
+          <p className="mt-1 text-sm text-ink-2">Your District Legal Services Authority gives a free lawyer to eligible people.</p>
+          <a href="tel:15100" className="pill pill-dark mt-3 !py-2 text-sm">Call 15100</a>
+        </div>
+      </Sheet>
     </div>
   )
 }
