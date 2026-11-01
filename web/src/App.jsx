@@ -4,6 +4,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { api } from './lib/api'
 import Footer from './components/Footer'
 import LanguageMenu from './components/LanguageMenu'
+import { NAV, useLang } from './lib/lang'
 import Home from './pages/Home'
 import Sahay from './pages/Sahay'
 import Abhyas from './pages/Abhyas'
@@ -25,12 +26,14 @@ function useRoute() {
 export function go(path) { location.hash = path }
 
 const LINKS = [
-  ['#/sahay', 'sahay', 'सहाय', 'Get help'],
-  ['#/abhyas', 'abhyas', 'अभ्यास', 'Practise'],
+  ['#/sahay', 'sahay', 0],
+  ['#/abhyas', 'abhyas', 1],
 ]
 
 export default function App() {
   const route = useRoute()
+  const [lang] = useLang()
+  const nav = NAV[lang] || NAV.en
   const [status, setStatus] = useState({})
   const [scrolled, setScrolled] = useState(false)
   const [inCourt, setInCourt] = useState(false)   // a live hearing owns the whole screen
@@ -52,7 +55,7 @@ export default function App() {
     <div className="min-h-screen">
       <header className="fixed inset-x-0 top-0 z-30 px-3 sm:px-5">
         <div
-          className={`mx-auto mt-3 flex max-w-[1360px] items-center gap-3 rounded-full border px-3 py-2 transition-all duration-300 sm:px-4 ${
+          className={`relative mx-auto mt-3 flex max-w-[1360px] items-center gap-3 rounded-full border px-3 py-2 transition-all duration-300 sm:px-4 ${
             scrolled ? 'border-line/80 bg-white/80 shadow-[0_8px_30px_-12px_rgba(16,24,40,.18)] backdrop-blur-xl' : 'border-transparent bg-white/40 backdrop-blur-md'
           }`}
         >
@@ -60,23 +63,23 @@ export default function App() {
             <span className="font-deva text-[26px] leading-none">न्यायमित्र</span>
           </a>
 
-          <nav className="mx-auto hidden items-center gap-1 rounded-full border border-white/80 bg-white/60 p-1 shadow-[0_6px_20px_-12px_rgba(16,24,40,.25)] backdrop-blur-xl md:flex">
-            {LINKS.map(([href, id, deva, en]) => (
+          <nav className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full border border-white/80 bg-white/60 p-1 shadow-[0_6px_20px_-12px_rgba(16,24,40,.25)] backdrop-blur-xl md:flex">
+            {LINKS.map(([href, id, i]) => (
               <a key={id} href={href} className={`relative rounded-full px-5 py-2 text-[15px] transition ${page === id ? 'text-white' : 'text-ink hover:bg-white/80'}`}>
                 {page === id && <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-full bg-ink" transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }} />}
-                <span className="relative"><span className="font-deva text-[16px] font-medium">{deva}</span> <span className={page === id ? 'opacity-70' : 'text-ink-2'}>· {en}</span></span>
+                <span className={`relative text-[15px] font-medium ${lang === 'en' ? '' : 'font-deva text-[16px]'}`}>{nav[i]}</span>
               </a>
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-1 md:ml-0">
+          <div className="ml-auto flex items-center gap-1">
             <LanguageMenu />
             <a href="https://github.com/rehaanajani/nyayamitra" target="_blank" rel="noreferrer" className="hidden rounded-full px-4 py-2 text-sm text-ink-2 transition hover:bg-canvas hover:text-ink sm:inline-flex sm:items-center sm:gap-1">
               GitHub <ArrowUpRight size={14} />
             </a>
-            <a href="#/sahay" className="pill pill-dark !py-2 text-sm md:hidden"><span className="font-deva">सहाय</span></a>
-            <a href="#/abhyas" className="pill pill-light !py-2 text-sm md:hidden"><span className="font-deva">अभ्यास</span></a>
-            <a href="#/sahay" className="pill pill-dark hidden !py-2 text-sm md:inline-flex">मदद लें <ArrowUpRight size={14} /></a>
+            <a href="#/sahay" className="pill pill-dark !py-2 text-sm md:hidden">{nav[0]}</a>
+            <a href="#/abhyas" className="pill pill-light !py-2 text-sm md:hidden">{nav[1]}</a>
+            <a href="#/sahay" className="pill pill-dark hidden !py-2 text-sm md:inline-flex">{nav[2]} <ArrowUpRight size={14} /></a>
           </div>
         </div>
       </header>
