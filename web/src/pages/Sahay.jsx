@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import { Mic, MicOff, RotateCcw, Send } from 'lucide-react'
 import { api } from '../lib/api'
 import useVoice from '../lib/useVoice'
-import { LightField, Orb, Reveal } from '../components/ui'
+import { LightField, Reveal } from '../components/ui'
 import Scene from '../components/Scene'
 import LanguageMenu from '../components/LanguageMenu'
 import { langInfo, useLang } from '../lib/lang'
@@ -95,9 +95,26 @@ export default function Sahay({ status }) {
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-line bg-white/80 py-1 pl-4 pr-1 text-sm text-ink-2">Speaking in <LanguageMenu align="left" /></div>
           </div>
 
-          <div className="mt-10 grid items-start gap-8 lg:grid-cols-[320px_1fr]">
+          <div className="mt-10 grid items-start gap-8 lg:grid-cols-[340px_1fr]">
             <div className="flex flex-col items-center gap-5">
-              <Orb level={orbLevel} active={voice.listening || voice.speaking} size={240} label={voice.speaking ? (ORB_LABEL[lang] || ORB_LABEL.en)[0] : voice.listening ? (ORB_LABEL[lang] || ORB_LABEL.en)[1] : ''} />
+              <div className="relative grid w-[320px] place-items-center">
+                {/* soft glow that pulses with the voice behind Mitra */}
+                <motion.div
+                  className="absolute bottom-6 h-60 w-60 rounded-full blur-2xl"
+                  style={{ background: 'conic-gradient(from 90deg, #a2ebfc, #e2e0fb, #ffd3b7, #bdb9f7, #a2ebfc)' }}
+                  animate={{ scale: 1 + orbLevel * 0.45, opacity: voice.listening || voice.speaking ? 0.95 : 0.6 }}
+                  transition={{ duration: 0.15 }}
+                />
+                <img
+                  src="/brand/mitra.webp"
+                  alt="Mitra, a friendly lion in an advocate's coat, holding the Constitution of India"
+                  className="relative w-[310px]"
+                  style={{ WebkitMaskImage: 'linear-gradient(to bottom, #000 80%, transparent 100%)', maskImage: 'linear-gradient(to bottom, #000 80%, transparent 100%)' }}
+                />
+                <div className="relative h-5 text-sm text-muted">
+                  {voice.speaking ? (ORB_LABEL[lang] || ORB_LABEL.en)[0] : voice.listening ? (ORB_LABEL[lang] || ORB_LABEL.en)[1] : ''}
+                </div>
+              </div>
               {!canTalk && (
                 <span className="chip !py-1.5">{status.gnani ? `Voice isn't available in ${langInfo(lang).english} yet · type below` : 'Voice is off · typing works'}</span>
               )}
