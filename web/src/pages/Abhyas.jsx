@@ -177,7 +177,7 @@ function Court({ matter, lang, temperament, status, onExit }) {
   )
 }
 
-export default function Abhyas({ status, params, openSettings }) {
+export default function Abhyas({ status, params }) {
   const [matter, setMatter] = useState(null)
   const [lang, setLang] = useState('hi')
   const [temperament, setTemperament] = useState('fair')
@@ -191,7 +191,7 @@ export default function Abhyas({ status, params, openSettings }) {
         <div className="mx-auto flex max-w-5xl flex-col items-center px-5 text-center">
           <Reveal text="अभ्यास" className="font-deva text-7xl leading-none sm:text-8xl" />
           <p className="font-display mt-4 max-w-2xl text-2xl text-ink-2 sm:text-3xl">It doesn't argue for you. It argues against you.</p>
-          {!status.gnani && <button onClick={openSettings} className="chip mt-5 !py-1.5 hover:border-ink">Add a Gnani key for voice · typing works without it</button>}
+          {!status.gnani && <span className="chip mt-5 !py-1.5">Voice is off · typing works</span>}
         </div>
       </LightField>
 

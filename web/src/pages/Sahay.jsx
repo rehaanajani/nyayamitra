@@ -19,7 +19,7 @@ const ORB_LABEL = {
   en: ['Speaking', 'Listening'],
 }
 
-export default function Sahay({ status, openSettings }) {
+export default function Sahay({ status }) {
   const [lang, setLang] = useState('hi')
   const [items, setItems] = useState([])
   const [state, setState] = useState({})
@@ -95,7 +95,7 @@ export default function Sahay({ status, openSettings }) {
             <div className="flex flex-col items-center gap-5">
               <Orb level={orbLevel} active={voice.listening || voice.speaking} size={240} label={voice.speaking ? ORB_LABEL[lang][0] : voice.listening ? ORB_LABEL[lang][1] : ''} />
               {!status.gnani && (
-                <button onClick={openSettings} className="chip !py-1.5 hover:border-ink">Add a Gnani key to talk by voice</button>
+                <span className="chip !py-1.5">Voice is off · typing works</span>
               )}
               <div className="flex gap-3">
                 {!started ? (
