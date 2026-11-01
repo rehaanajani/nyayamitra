@@ -147,11 +147,13 @@ export function createSpeaker({ onStart, onEnd, onLevel } = {}) {
     return run
   }
 
-  async function speak(text, { lang = 'hi', role = 'sahay' } = {}) {
+  // tag: a Timbre v3 audio tag such as '<sigh>', voiced before the first sentence
+  async function speak(text, { lang = 'hi', role = 'sahay', tag } = {}) {
     const my = ++token
     const c = ensure()
     if (c.state === 'suspended') await c.resume()
     const parts = sentences(text)
+    if (tag && parts.length) parts[0] = `${tag} ${parts[0]}`
     onStart?.()
     cancelAnimationFrame(raf); meter()
     try {
