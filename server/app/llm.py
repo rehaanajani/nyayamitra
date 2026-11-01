@@ -122,22 +122,21 @@ async def _vertex_chat(base: str, key: str, model: str, messages: list[dict], ma
                 for m in messages if m["role"] != "system"]
     body: dict = {
         "contents": contents,
-        "generationConfig": {"maxOutputTokens": max_tokens, "temperature": temperature,
-                             # spoken replies want speed, not hidden reasoning
-                             "thinkingConfig": {"thinkingBudget": 0}},
+        # Gemini 3.x always thinks first and counts it against the output limit,
+        # so leave room for the thinking on top of the spoken reply
+        # no temperature: Gemini 3.x is tuned for its default and can loop below it
+        "generationConfig": {"maxOutputTokens": max_tokens + 1024,
+                             # low thinking answers in ~4 s instead of 15-30 s
+                             "thinkingConfig": {"thinkingLevel": "LOW"}},
     }
     if system:
         body["systemInstruction"] = {"parts": [{"text": system}]}
-    if want_json:
-        body["generationConfig"]["responseMimeType"] = "application/json"
+    # want_json is not passed on: Gemini 3.x JSON mode stalls; the prompts ask
+    # for JSON and parse_json() pulls it out of the reply
     url = f"{base}/publishers/google/models/{model.removeprefix('google/')}:generateContent"
     async with httpx.AsyncClient(timeout=45) as client:
         r = await client.post(url, json=body, headers={"x-goog-api-key": key})
-        if r.status_code == 400 and "thinking" in r.text.lower():
-            # newer Gemini generations take a different thinking control; use the default
-            body["generationConfig"].pop("thinkingConfig")
-            r = await client.post(url, json=body, headers={"x-goog-api-key": key})
     if r.status_code != 200:
         raise RuntimeError(f"Vertex {r.status_code}: {r.text[:300]}")
     parts = r.json()["candidates"][0].get("content", {}).get("parts", [])
-    return "".join(p.get("text", "") for p in parts).strip()
+    return "".join(p.get("text", "") for p in parts if not p.get("thought")).strip()
