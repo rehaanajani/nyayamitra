@@ -5,7 +5,7 @@ import { chromium } from 'playwright'
 import fs from 'fs'
 const clip = process.argv[2]
 const SITE = 'https://nyayamitra-gnani.vercel.app'
-const DIR = `public/rec/${clip}`
+const DIR = process.env.REC_DIR ? `${process.env.REC_DIR}/${clip}` : `public/rec/${clip}`
 fs.rmSync(DIR, { recursive: true, force: true }); fs.mkdirSync(`${DIR}/f`, { recursive: true }); fs.mkdirSync(`${DIR}/a`, { recursive: true })
 const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required', '--use-fake-ui-for-media-stream'] })
 const ctx = await b.newContext({ viewport: { width: 1440, height: 810 }, deviceScaleFactor: 4 / 3, permissions: ['microphone'] })
