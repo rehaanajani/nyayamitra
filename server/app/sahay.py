@@ -101,7 +101,30 @@ def _next_ask(issue_id: str, facts: dict) -> dict | None:
     return None
 
 
+# Sahay's voice is a woman's. The prompt asks for feminine first-person forms; this
+# catches the ones a model still slips on, since Hindi verbs carry the speaker's gender.
+_FEMININE_HI = [
+    ("समझ गया", "समझ गई"), ("करूँगा", "करूँगी"), ("करूंगा", "करूंगी"), ("दूँगा", "दूँगी"), ("दूंगा", "दूंगी"),
+    ("बताऊँगा", "बताऊँगी"), ("बताऊंगा", "बताऊंगी"), ("सकता हूँ", "सकती हूँ"), ("सकता हूं", "सकती हूं"),
+    ("रहा हूँ", "रही हूँ"), ("रहा हूं", "रही हूं"), ("गया हूँ", "गई हूँ"), ("गया हूं", "गई हूं"),
+    ("चुका हूँ", "चुकी हूँ"), ("चुका हूं", "चुकी हूं"),
+]
+
+
+def _feminine(reply: str, lang: str) -> str:
+    if lang == "hi":
+        for old, new in _FEMININE_HI:
+            reply = reply.replace(old, new)
+    return reply
+
+
 async def turn(keys: Keys, lang: str, state: dict, text: str, history: list[dict]) -> dict:
+    out = await _turn(keys, lang, state, text, history)
+    out["reply"] = _feminine(out["reply"], lang)
+    return out
+
+
+async def _turn(keys: Keys, lang: str, state: dict, text: str, history: list[dict]) -> dict:
     state = dict(state or {})
     facts = dict(state.get("facts") or {})
     issue_id = state.get("issue_id")
@@ -125,6 +148,12 @@ async def turn(keys: Keys, lang: str, state: dict, text: str, history: list[dict
         for k, v in (result.get("facts") or {}).items():
             if v and str(v).strip().lower() not in ("null", "none", "unknown"):
                 facts[k] = str(v)
+        # never ask the same thing twice: an answer the model couldn't file still
+        # counts, so keep the caller's own words and move on to the next question
+        pending = state.get("pending_key")
+        if pending and issue_id and not facts.get(pending) and any(a["key"] == pending for a in ISSUES[issue_id]["ask"]):
+            facts[pending] = text
+            result["reply"] = None
     else:
         if not issue_id:
             issue_id = _keyword_issue(text)
@@ -183,6 +212,7 @@ Facts still needed (key: question): {json.dumps({a["key"]: a["q"] for a in missi
 
 Rules for "reply":
 - Write it in {style}. Maximum 2 short sentences, as if spoken on a phone.
+- You are a woman. In Hindi and any language where verbs carry gender, use feminine first-person forms (समझ गई, करूँगी, सकती हूँ).
 - If facts are still needed after this turn, briefly acknowledge what they said and ask ONLY the next missing question.
 - If no facts are missing after this turn, say you have understood and their path is on the screen. Do not list steps.
 - Never give legal conclusions or promise outcomes. Never invent laws, sections or phone numbers.
@@ -195,7 +225,7 @@ Fact keys must come from the needed list of the chosen issue. If you change issu
         msgs.append({"role": "assistant" if h["role"] == "sahay" else "user", "content": h["text"]})
     # small models drift to Hinglish; restate the hard rules right next to the turn
     script = "English" if lang == "en" else f"{lang_info(lang)['english']} written in its own script"
-    msgs.append({"role": "user", "content": f"{text}\n\n[Rules: the reply must be in {script}. Ask at most ONE question. Output JSON only.]"})
+    msgs.append({"role": "user", "content": f"{text}\n\n[Rules: the reply must be in {script}. Speak as a woman. Ask at most ONE question. Output JSON only.]"})
     out = await llm.chat(keys, msgs, max_tokens=350, temperature=0.3, want_json=True)
     return llm.parse_json(out)
 
