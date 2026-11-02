@@ -43,3 +43,37 @@ SHORT = [
  ('t6','tech',L,'en-IN','Every voice you just heard is Gyaani Timbre.','Every voice you just heard is Gnani Timbre.',0.25),
  ('c26','close',L,'en-IN','Justice should speak your language. The link is in the post.','Justice should speak your language. The link is in the post.',1.6),
 ]
+
+# Spoken into the real app's microphone while it is being recorded (scripts/live.mjs).
+MIC = [
+ ('m1','mic',C,'hi-IN','मेरे boss ने तीन महीने से salary नहीं दी। अब किराया भी नहीं दे पा रही हूँ।','',0),
+ ('m2','mic',C,'hi-IN','Lucknow में कपड़े की factory है, वहीं सिलाई करती हूँ।','',0),
+ ('m3','mic',C,'hi-IN','तीन महीने की, कुल छत्तीस हज़ार रुपये।','',0),
+ ('m4','mic',C,'hi-IN','हाँ, attendance register और bank statement हैं।','',0),
+ ('m5','mic',C,'hi-IN','हाँ, अभी भी वहीं जा रही हूँ।','',0),
+ ('a1','mic',A,'hi-IN','My Lord, employer ने जानबूझकर झूठा वादा किया। यह Section 420 IPC के तहत cheating है।','',0),
+ ('a2','mic',A,'hi-IN','My Lord, यह BNS की धारा 318 के तहत cheating है। Employer ने लिखित वादे किए और तीन महीने काम लिया, जबकि पैसे देने की नीयत ही नहीं थी।','',0),
+ ('a3','mic',A,'hi-IN','My Lord, नीयत साफ़ होती तो कम से कम आंशिक भुगतान होता। तीन महीने में एक रुपया नहीं दिया गया।','',0),
+]
+
+# The story film: Sahay narrates. Meena and Arjun are fictional; the app footage is real.
+STORY = [
+ ('n1','',L,'en-IN','It\'s two in the morning. Arjun just got cut off by a judge who doesn\'t exist.','It\'s two in the morning. Arjun just got cut off by a judge who doesn\'t exist.',0),
+ ('n2','',L,'en-IN','I know, because that courtroom is mine. My name is Sahay. And to explain why he\'s still awake, I have to go back three weeks. To Meena.','I know, because that courtroom is mine. My name is Sahay. And to explain why he\'s still awake, I have to go back three weeks. To Meena.',0),
+ ('n3','',L,'en-IN','Meena stitches uniforms at a factory in Lucknow. Her boss hasn\'t paid her for three months. The rent is due on Friday.','Meena stitches uniforms at a factory in Lucknow. Her boss hasn\'t paid her for three months. The rent is due on Friday.',0),
+ ('n4','',L,'en-IN','India has five point six four crore court cases pending. More than eighty percent of Indians qualify for free legal aid, and Meena is one of them. Nobody ever told her.','India has 5.64 crore court cases pending. More than 80% of Indians qualify for free legal aid, and Meena is one of them. Nobody ever told her.',0),
+ ('n5','',L,'en-IN','That night, she opened Nyaya Mitra, tapped the ring, and just started talking.','That night, she opened न्यायमित्र, tapped the ring, and just started talking.',0),
+ ('n6','',L,'en-IN','No forms. No sections. One question at a time, in her own words.','No forms. No sections. One question at a time, in her own words.',0),
+ ('n7','',L,'en-IN','By the end, she knew where to go, what to carry, and her deadline.','By the end, she knew where to go, what to carry, and her deadline.',0),
+ ('n8','',L,'en-IN','And she had a number. One five one zero zero. A free lawyer. That\'s how she met Arjun.','And she had a number. 15100. A free lawyer. That\'s how she met Arjun.',0),
+ ('n9','',L,'en-IN','Arjun is twenty six. India\'s criminal laws changed in 2024. New names, new numbers. And at two in the morning, there is nobody to rehearse with.','Arjun is 26. India\'s criminal laws changed in 2024. New names, new numbers. And at 2 AM, there is nobody to rehearse with.',0),
+ ('n10','',L,'en-IN','So he typed her story into my other door. Abhyas. Names changed, case built in seconds.','So he typed her story into my other door: अभ्यास. Names changed, case built in seconds.',0),
+ ('n11','',L,'en-IN','After the judge cut him off, he tried again. With the right section.','After the judge cut him off, he tried again. With the right section.',0),
+ ('n12','',L,'en-IN','Sixty four out of a hundred. The bench called it a commercial dispute, not a crime. And it told him the one line he should have said.','64 out of 100. The bench called it a commercial dispute, not a crime. And it told him the one line he should have said.',0),
+ ('n13','',L,'en-IN','So he started again.','So he started again.',0),
+ ('n14','',L,'en-IN','This morning, they walked up the court steps together. I can\'t tell you if she\'ll win. Nobody can promise that.','This morning, they walked up the court steps together. I can\'t tell you if she\'ll win. Nobody can promise that.',0),
+ ('n15','',L,'en-IN','But she isn\'t alone any more. And he has already lost this case once, to a judge who doesn\'t exist.','But she isn\'t alone any more. And he has already lost this case once, to a judge who doesn\'t exist.',0),
+ ('n16','',L,'en-IN','I listen with Gyaani Prisma, speak with Tamber, and think with Evon, with Gemini standing by. Every voice you heard is Tamber.','I listen with Gnani Prisma, speak with Timbre, and think with Evon, with Gemini standing by. Every voice you heard is Timbre.',0),
+ ('n17','',L,'hi-IN','न्याय सबका है।','Justice belongs to everyone.',0),
+ ('n18','',L,'en-IN','Justice should speak your language. Try it. The link is in the post.','Justice should speak your language. Try it. The link is in the post.',0),
+]

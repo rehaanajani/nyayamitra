@@ -1,7 +1,7 @@
 # Repairs Timbre's streamed WAVs, trims edge silence, levels loudness, rebuilds the timeline.
 import json,os,sys,wave
 import numpy as np
-sys.path.insert(0,'scripts'); from lines import LINES, SHORT
+sys.path.insert(0,'scripts'); from lines import LINES, SHORT, MIC, STORY
 os.makedirs('public/vo',exist_ok=True)
 SR=24000
 def write(p,x,sr=SR,ch=1):
@@ -22,5 +22,4 @@ def build(lines,out):
         print(id_,round(d,2),end=' | ')
     json.dump({'total':round(tot,3),'lines':tl},open(out,'w'),ensure_ascii=False,indent=0)
     print('\nTOTAL',out,round(tot,1))
-build(LINES,'public/timeline.json')
-build(SHORT,'public/timeline-short.json')
+build(STORY,'public/timeline-story.json')

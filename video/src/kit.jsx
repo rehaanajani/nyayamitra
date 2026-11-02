@@ -30,21 +30,22 @@ export const useSpring = (at, config = { damping: 20, stiffness: 120, mass: 0.9 
 }
 
 // A pile of cards: each new one rises from below; everything under it shrinks and slides back.
-export const Stack = ({ cards, top = 34, width = 1500, height = 844 }) => {
+export const Stack = ({ cards, top = 64, width = 1422, height = 800 }) => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig()
   const rise = (at) => spring({ frame: f - at, fps, config: { damping: 19, stiffness: 105, mass: 0.95 } })
   return (
     <AbsoluteFill>
       {cards.map((c, i) => {
+        if (f < c.at - 1) return null
+        const depth = cards.slice(i + 1, i + 5).reduce((s, n) => s + (f >= n.at ? rise(n.at) : 0), 0)
+        if (depth >= 3) return null
         const p = rise(c.at)
-        const depth = cards.slice(i + 1).reduce((s, n) => s + rise(n.at), 0)
-        const w = c.width ?? width; const h = c.height ?? height
         return (
           <div key={i} style={{
-            position: 'absolute', left: (c.left ?? (1920 - w) / 2), top: c.top ?? top, width: w, height: h, borderRadius: 34, overflow: 'hidden', background: c.bg ?? '#fff',
+            position: 'absolute', left: (1920 - width) / 2, top, width, height, borderRadius: 34, overflow: 'hidden', background: c.bg ?? '#fff',
             boxShadow: '0 40px 80px -30px rgba(16,24,40,.45), 0 0 0 1px rgba(255,255,255,.7)',
-            transform: `translateY(${(1 - p) * 1150 - depth * 34}px) scale(${1 - depth * 0.055}) rotate(${(1 - p) * (i % 2 ? 3 : -3)}deg)`,
-            filter: `brightness(${1 - Math.min(depth, 2) * 0.1})`, transformOrigin: '50% 0%',
+            transform: `translateY(${(1 - p) * 1150 - depth * 26}px) scale(${1 - depth * 0.05}) rotate(${(1 - p) * (i % 2 ? 3 : -3)}deg)`,
+            filter: `brightness(${1 - Math.min(depth, 2) * 0.08})`, transformOrigin: '50% 0%',
           }}>{c.render()}</div>
         )
       })}
@@ -97,40 +98,17 @@ export const Pill = ({ children, style }) => (
   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 14, borderRadius: 999, background: C.ink, color: '#fff', padding: '14px 28px', fontFamily: F.sans, fontWeight: 500, fontSize: 30, ...style }}>{children}</div>
 )
 
-const TAG = { adv: 'ADVOCATE', adv6: 'ADVOCATE', jud: 'THE BENCH', jud6: 'THE BENCH', jud2: 'THE BENCH', cit: 'CALLER', sah: 'सहाय', opp: 'OPPOSING COUNSEL' }
-
-function chunks(text, max = 66) {
-  const parts = text.match(/[^.?!:,]+[.?!:,]*["']?\s*/g) ?? [text]
-  const out = []; let cur = ''
-  for (const p of parts) {
-    if (cur && (cur + p).length > max) { out.push(cur.trim()); cur = p } else cur += p
-  }
-  if (cur.trim()) out.push(cur.trim())
-  return out
-}
-
-// Burned-in captions: most LinkedIn feeds play on mute.
+// Short subtitles below the cards, no backdrop. Each line is timed to the speech (scripts/story.py).
 export const Captions = ({ lines, fps, hideFrom = Infinity }) => {
   const f = useCurrentFrame()
   if (f >= hideFrom) return null
   const t = f / fps
-  const line = lines.find((l) => t >= l.start && t < l.start + l.dur + 0.12)
+  const line = lines.find((l) => t >= l.start && t < l.start + l.dur)
   if (!line) return null
-  const cs = chunks(line.caption); const total = cs.reduce((s, c) => s + c.length, 0)
-  let acc = 0; let cur = cs[cs.length - 1]; let curStart = line.start
-  for (const c of cs) {
-    const d = (c.length / total) * line.dur
-    if (t < line.start + acc + d) { cur = c; curStart = line.start + acc; break }
-    acc += d
-  }
-  const op = interpolate(t - curStart, [0, 0.1], [0.4, 1], clamp)
-  const tag = TAG[line.id]
   return (
-    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 34, display: 'flex', justifyContent: 'center', zIndex: 50 }}>
-      <div style={{ maxWidth: 1500, display: 'flex', alignItems: 'center', gap: 18, borderRadius: 26, background: 'rgba(11,11,15,.9)', padding: '17px 32px', color: '#fff', fontFamily: F.sans, fontWeight: 500, fontSize: 36, lineHeight: 1.25, opacity: op, boxShadow: '0 20px 50px -18px rgba(11,11,15,.6)' }}>
-        {tag && <span style={{ flexShrink: 0, fontSize: 19, letterSpacing: tag === 'सहाय' ? 0 : '0.14em', color: '#c9c4ff' }}>{tag}</span>}
-        <span>{cur}</span>
-      </div>
+    <div style={{ position: 'absolute', left: 300, right: 300, top: 904, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, textAlign: 'center', zIndex: 50, fontFamily: F.sans, color: C.ink, fontWeight: 600, fontSize: 40, lineHeight: 1.2, textShadow: '0 0 14px rgba(255,255,255,.95), 0 0 3px rgba(255,255,255,.9)' }}>
+      {line.tag && <span style={{ flexShrink: 0, fontSize: 21, fontWeight: 600, letterSpacing: '0.1em', color: C.violet }}>{line.tag}</span>}
+      <span>{line.caption}</span>
     </div>
   )
 }
