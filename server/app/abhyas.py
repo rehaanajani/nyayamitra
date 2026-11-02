@@ -255,7 +255,7 @@ JSON: {{"scores": {{"law": n, "facts": n, "bench_handling": n, "delivery": n}}, 
             "bench_handling": base - 5,
             "delivery": max(10, base - 3 * sum(fillers.values())),
         }
-        result["notes"] = ["Connect an LLM (LLM_BASE_URL in server/.env) for a written review of this round."]
+        result["notes"] = ["The written review could not be prepared this time. Your scores above still stand; try another hearing for a full review."]
     return result
 
 
