@@ -137,7 +137,7 @@ function TurnBanner({ phase, round, rounds, opponent }) {
   )
 }
 
-function Party({ label, name, text, live, waiting, tone }) {
+function Party({ label, name, text, live, waiting, tone, voiced, reveal }) {
   return (
     <div className={`card flex min-h-[180px] flex-col overflow-hidden p-5 lg:min-h-0 ${tone === 'you' ? 'ring-1 ring-ink/10' : ''}`}>
       <div className="flex items-center gap-2">
@@ -148,7 +148,7 @@ function Party({ label, name, text, live, waiting, tone }) {
       <div className="scroll-soft mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
         {text ? (
           <motion.p key={text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="font-display text-[20px] leading-snug text-ink">
-            {tone === 'them' ? <Streamed text={text} /> : text}{live && <span className="ml-1 inline-block h-5 w-[3px] animate-pulse bg-ink/50 align-middle" />}
+            {tone === 'them' ? <Streamed text={text} voiced={voiced} reveal={reveal} /> : text}{live && <span className="ml-1 inline-block h-5 w-[3px] animate-pulse bg-ink/50 align-middle" />}
           </motion.p>
         ) : waiting ? (
           <div className="flex gap-1.5 pt-2">{[0, 1, 2].map((i) => <motion.span key={i} className="h-2 w-2 rounded-full bg-[#e8590c]/70" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.12 }} />)}</div>
@@ -344,7 +344,7 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
           <div className="scroll-soft mt-2 min-h-0 w-full flex-1 overflow-y-auto">
             <AnimatePresence mode="wait">
               <motion.p key={bench.text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[15px] leading-relaxed text-ink">
-                {phase === 'bench' && !bench.text ? 'Considering…' : <Streamed text={bench.text} />}
+                {phase === 'bench' && !bench.text ? 'Considering…' : <Streamed text={bench.text} voiced={canTalk} reveal={voice.reveal} />}
               </motion.p>
             </AnimatePresence>
           </div>
@@ -355,7 +355,7 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
           <div className="w-full shrink-0 text-left"><ScoreBars scores={bench.scores} /></div>
         </div>
 
-        <Party label="Opposing counsel" name={oppName} text={oppNow} waiting={phase === 'opponent'} tone="them" />
+        <Party label="Opposing counsel" name={oppName} text={oppNow} waiting={phase === 'opponent'} tone="them" voiced={canTalk} reveal={voice.reveal} />
       </div>
 
       {/* type instead of speaking */}

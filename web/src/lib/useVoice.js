@@ -19,6 +19,7 @@ export default function useVoice({ lang, onTurn, onPartial }) {
   const [outLevel, setOutLevel] = useState(0)
   const [partial, setPartial] = useState('')
   const [error, setError] = useState('')
+  const [reveal, setReveal] = useState(null) // what the voice is saying right now
 
   const listener = useRef(null)
   const buffer = useRef([])
@@ -34,6 +35,7 @@ export default function useVoice({ lang, onTurn, onPartial }) {
       onStart: () => setSpeaking(true),
       onEnd: () => setSpeaking(false),
       onLevel: setOutLevel,
+      onSentence: setReveal,
     })
   }
 
@@ -133,5 +135,5 @@ export default function useVoice({ lang, onTurn, onPartial }) {
     clearTimeout(timer.current)
   }, [])
 
-  return { listening, speaking, micLevel, outLevel, partial, error, setError, start, stop, pause, submitNow: flush, say, stopSpeaking }
+  return { reveal, listening, speaking, micLevel, outLevel, partial, error, setError, start, stop, pause, submitNow: flush, say, stopSpeaking }
 }

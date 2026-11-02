@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 
 /** Gnani-style headline: words rise in one by one out of a soft blur. */
@@ -47,25 +47,39 @@ export function LightField({ className = '', children }) {
 }
 
 /** Breathing pastel orb that reacts to voice level. */
-// Text that arrives word by word, the way a model's answer does. `live` false shows it whole.
-export function Streamed({ text = '', live = true, onGrow, cursor = true }) {
-  const words = useMemo(() => text.split(/(\s+)/), [text])
-  const [shown, setShown] = useState(live ? 0 : words.length)
-  useEffect(() => {
-    if (!live) { setShown(words.length); return }
-    setShown(0)
+// Text that arrives word by word as it is spoken. With `voiced`, it follows `reveal` from the
+// speaker, sentence by sentence; without a voice it runs on a timer. `live` false shows it whole.
+export function Streamed({ text = '', live = true, voiced = false, reveal, onGrow }) {
+  const [chars, setChars] = useState(live ? 0 : text.length)
+  useEffect(() => { setChars(live ? 0 : text.length) }, [text, live])
+
+  useEffect(() => { // no voice, or the voice never arrived: don't leave the text hidden
+    if (!live) return
     let i = 0, t
-    const tick = () => {
-      i += 2 // a word and the space after it
-      setShown(i)
-      onGrow?.()
-      if (i < words.length) t = setTimeout(tick, Math.max(55, (words[i]?.length || 3) * 22))
-    }
-    t = setTimeout(tick, 60)
+    const tick = () => { i += 6; setChars((c) => Math.max(c, i)); if (i < text.length) t = setTimeout(tick, 90) }
+    t = setTimeout(tick, voiced ? 9000 : 60)
     return () => clearTimeout(t)
-  }, [text, live]) // eslint-disable-line react-hooks/exhaustive-deps
-  const done = shown >= words.length
-  return <>{words.slice(0, shown).join('')}{!done && cursor && <span className="ml-1 inline-block h-[1em] w-[3px] animate-pulse bg-violet align-[-0.15em]" />}</>
+  }, [text, live, voiced])
+
+  useEffect(() => { // pace this sentence across its own audio
+    if (!live || !voiced || reveal?.text !== text) return
+    if (!reveal.seconds) { setChars(text.length); return }
+    let raf
+    const step = () => {
+      const p = Math.min(1, (performance.now() - reveal.at) / (reveal.seconds * 1000))
+      setChars((c) => Math.max(c, reveal.from + (reveal.to - reveal.from) * p))
+      onGrow?.()
+      if (p < 1) raf = requestAnimationFrame(step)
+    }
+    step()
+    return () => cancelAnimationFrame(raf)
+  }, [reveal, text, live, voiced]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // never cut a word in half
+  let end = Math.floor(chars)
+  if (end < text.length) { const sp = text.lastIndexOf(' ', end); end = sp > 0 ? sp : 0 }
+  else end = text.length
+  return <>{text.slice(0, end)}{end < text.length && <span className="ml-1 inline-block h-[1em] w-[3px] animate-pulse bg-violet align-[-0.15em]" />}</>
 }
 
 export function Orb({ level = 0, active = false, tone = 'calm', size = 220, label }) {

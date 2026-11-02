@@ -92,7 +92,7 @@ let ttsQueue = Promise.resolve()
 /**
  * Timbre speaker with a queue and instant stop (for barge-in).
  */
-export function createSpeaker({ onStart, onEnd, onLevel } = {}) {
+export function createSpeaker({ onStart, onEnd, onLevel, onSentence } = {}) {
   let ctx = null
   let current = null
   let token = 0
@@ -149,10 +149,12 @@ export function createSpeaker({ onStart, onEnd, onLevel } = {}) {
 
   // tag: a Timbre v3 audio tag such as '<sigh>', voiced before the first sentence
   async function speak(text, { lang = 'hi', role = 'sahay', tag } = {}) {
+    let spoken = 0 // characters of `text` already voiced, for the on-screen reveal
     const my = ++token
     const c = ensure()
     if (c.state === 'suspended') await c.resume()
     const parts = sentences(text)
+    const plain = [...parts]
     if (tag && parts.length) parts[0] = `${tag} ${parts[0]}`
     onStart?.()
     cancelAnimationFrame(raf); meter()
@@ -165,6 +167,10 @@ export function createSpeaker({ onStart, onEnd, onLevel } = {}) {
         next = i + 1 < parts.length ? fetchAudio(parts[i + 1], lang, role) : null
         const audio = await c.decodeAudioData(buf)
         if (my !== token) return
+        // tell the screen which words this audio covers, so text and voice stay together
+        const end = text.indexOf(plain[i], spoken) + plain[i].length
+        onSentence?.({ text, from: spoken, to: end, seconds: audio.duration, at: performance.now() })
+        spoken = end
         await new Promise((resolve) => {
           const s = c.createBufferSource()
           s.buffer = audio
@@ -175,7 +181,7 @@ export function createSpeaker({ onStart, onEnd, onLevel } = {}) {
         })
       }
     } finally {
-      if (my === token) { current = null; cancelAnimationFrame(raf); onLevel?.(0); onEnd?.() }
+      if (my === token) { current = null; cancelAnimationFrame(raf); onLevel?.(0); onSentence?.({ text, from: text.length, to: text.length, seconds: 0, at: 0 }); onEnd?.() }
     }
   }
 

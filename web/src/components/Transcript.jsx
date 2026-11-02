@@ -9,7 +9,7 @@ const WHO = {
   opponent: { label: 'Opposing counsel', cls: 'bg-gradient-to-br from-peach/70 to-white border border-line rounded-bl-md' },
 }
 
-export default function Transcript({ items, partial, className = '' }) {
+export default function Transcript({ items, partial, className = '', voiced = false, reveal }) {
   const end = useRef(null)
   useEffect(() => { end.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }) }, [items.length, partial])
 
@@ -29,7 +29,7 @@ export default function Transcript({ items, partial, className = '' }) {
               <div className={`mb-0.5 text-[11px] font-medium uppercase tracking-wider ${m.role === 'user' ? 'text-white/60' : 'text-muted'}`}>
                 {w.label}{m.interrupt ? ' · interrupted' : ''}
               </div>
-              <div className="text-[15px] leading-relaxed">{m.role === 'user' ? m.text : <Streamed text={m.text} live={i === items.length - 1} onGrow={() => end.current?.scrollIntoView({ block: 'end' })} />}</div>
+              <div className="text-[15px] leading-relaxed">{m.role === 'user' ? m.text : <Streamed text={m.text} live={i === items.length - 1} voiced={voiced} reveal={reveal} onGrow={() => end.current?.scrollIntoView({ block: 'end' })} />}</div>
               {m.flags?.map((f, j) => f.type === 'old_citation' && (
                 <div key={j} className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-warn/10 px-2.5 py-1 text-xs font-medium text-warn">
                   {f.old} → {f.new}

@@ -135,7 +135,7 @@ export default function Sahay({ status }) {
                 ))}
               </div>
             ) : (
-              <Transcript items={items} partial={voice.partial} className="scroll-soft min-h-0 flex-1 overflow-y-auto px-1" />
+              <Transcript items={items} partial={voice.partial} voiced={canTalk} reveal={voice.reveal} className="scroll-soft min-h-0 flex-1 overflow-y-auto px-1" />
             )}
             {thinking && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-1 px-2 py-2">
