@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { Streamed } from './ui'
 
 const WHO = {
   user: { label: 'You', cls: 'ml-auto bg-ink text-white rounded-br-md' },
@@ -28,7 +29,7 @@ export default function Transcript({ items, partial, className = '' }) {
               <div className={`mb-0.5 text-[11px] font-medium uppercase tracking-wider ${m.role === 'user' ? 'text-white/60' : 'text-muted'}`}>
                 {w.label}{m.interrupt ? ' · interrupted' : ''}
               </div>
-              <div className="text-[15px] leading-relaxed">{m.text}</div>
+              <div className="text-[15px] leading-relaxed">{m.role === 'user' ? m.text : <Streamed text={m.text} live={i === items.length - 1} onGrow={() => end.current?.scrollIntoView({ block: 'end' })} />}</div>
               {m.flags?.map((f, j) => f.type === 'old_citation' && (
                 <div key={j} className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-warn/10 px-2.5 py-1 text-xs font-medium text-warn">
                   {f.old} → {f.new}

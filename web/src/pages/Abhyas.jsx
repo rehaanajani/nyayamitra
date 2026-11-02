@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { ArrowLeft, FileText, Gavel, Landmark, Plus, Scale, ScrollText, Send, Square, Timer } from 'lucide-react'
 import { api } from '../lib/api'
 import useVoice from '../lib/useVoice'
-import { FadeUp, LightField, Reveal, SectionLabel } from '../components/ui'
+import { FadeUp, LightField, Reveal, SectionLabel, Streamed } from '../components/ui'
 import LanguageMenu from '../components/LanguageMenu'
 import { langInfo, useLang } from '../lib/lang'
 import Nirnay from '../components/Nirnay'
@@ -148,7 +148,7 @@ function Party({ label, name, text, live, waiting, tone }) {
       <div className="scroll-soft mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
         {text ? (
           <motion.p key={text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="font-display text-[20px] leading-snug text-ink">
-            {text}{live && <span className="ml-1 inline-block h-5 w-[3px] animate-pulse bg-ink/50 align-middle" />}
+            {tone === 'them' ? <Streamed text={text} /> : text}{live && <span className="ml-1 inline-block h-5 w-[3px] animate-pulse bg-ink/50 align-middle" />}
           </motion.p>
         ) : waiting ? (
           <div className="flex gap-1.5 pt-2">{[0, 1, 2].map((i) => <motion.span key={i} className="h-2 w-2 rounded-full bg-[#e8590c]/70" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.12 }} />)}</div>
@@ -163,12 +163,12 @@ function Party({ label, name, text, live, waiting, tone }) {
 function ScoreBars({ scores }) {
   if (!scores) return null
   return (
-    <div className="mt-3 grid gap-2">
+    <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5">
       {AXES.map(([k, deva, en]) => (
         <div key={k}>
-          <div className="flex items-center justify-between text-[12.5px] text-ink-2">
+          <div className="flex items-center justify-between text-[11.5px] text-ink-2">
             <span className="font-medium text-ink">{scores.you[k]}</span>
-            <span><span className="font-deva">{deva}</span> · {en}</span>
+            <span className="truncate px-1"><span className="font-deva">{deva}</span> · {en}</span>
             <span className="font-medium text-[#b0623a]">{scores.them[k]}</span>
           </div>
           <div className="mt-1 flex items-center gap-1.5">
@@ -178,7 +178,7 @@ function ScoreBars({ scores }) {
           </div>
         </div>
       ))}
-      <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-1.5 text-sm">
+      <div className="col-span-2 flex items-center justify-between rounded-xl bg-white/70 px-4 py-1 text-sm">
         <span>You <b className="text-lg">{avg(scores.you)}</b></span>
         <span className="text-muted">this round</span>
         <span><b className="text-lg text-[#b0623a]">{avg(scores.them)}</b> Them</span>
@@ -339,18 +339,20 @@ function Court({ matter, side, lang, temperament, status, onExit, onLock }) {
       <div className="scroll-soft mt-3 grid min-h-0 flex-1 gap-3 overflow-y-auto lg:grid-cols-[1fr_360px_1fr] lg:gap-4 lg:overflow-visible">
         <Party label="You" name={youAre} text={youNow || voice.partial} live={!!voice.partial && !youNow} tone="you" />
 
-        <div className="card scroll-soft flex min-h-0 flex-col items-center overflow-y-auto bg-gradient-to-b from-lav/60 via-white/80 to-white p-5 text-center">
+        <div className="card flex min-h-0 flex-col items-center overflow-hidden bg-gradient-to-b from-lav/60 via-white/80 to-white p-4 text-center">
           <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted"><span className="font-deva text-sm normal-case tracking-normal text-ink">न्यायाधीश</span> · The bench</div>
-          <AnimatePresence mode="wait">
-            <motion.p key={bench.text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 text-[15px] leading-relaxed text-ink">
-              {phase === 'bench' && !bench.text ? 'Considering…' : bench.text}
-            </motion.p>
-          </AnimatePresence>
+          <div className="scroll-soft mt-2 min-h-0 w-full flex-1 overflow-y-auto">
+            <AnimatePresence mode="wait">
+              <motion.p key={bench.text} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[15px] leading-relaxed text-ink">
+                {phase === 'bench' && !bench.text ? 'Considering…' : <Streamed text={bench.text} />}
+              </motion.p>
+            </AnimatePresence>
+          </div>
           {bench.flags?.map((f, i) => f.type === 'old_citation' && (
             <span key={i} className="mt-1 rounded-full bg-warn/10 px-3 py-1 text-xs font-medium text-warn">{f.old} → {f.new}</span>
           ))}
-          <div className="mt-3"><MicOrb voice={voice} on={micOn} onToggle={() => setMicOn((v) => !v)} disabled={!canTalk || phase === 'done'} label={micLabel} tone={micTone} size={124} /></div>
-          <div className="w-full text-left"><ScoreBars scores={bench.scores} /></div>
+          <div className="mt-2 shrink-0"><MicOrb voice={voice} on={micOn} onToggle={() => setMicOn((v) => !v)} disabled={!canTalk || phase === 'done'} label={micLabel} tone={micTone} size={bench.scores ? 92 : 124} /></div>
+          <div className="w-full shrink-0 text-left"><ScoreBars scores={bench.scores} /></div>
         </div>
 
         <Party label="Opposing counsel" name={oppName} text={oppNow} waiting={phase === 'opponent'} tone="them" />

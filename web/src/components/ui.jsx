@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 
 /** Gnani-style headline: words rise in one by one out of a soft blur. */
@@ -46,6 +47,27 @@ export function LightField({ className = '', children }) {
 }
 
 /** Breathing pastel orb that reacts to voice level. */
+// Text that arrives word by word, the way a model's answer does. `live` false shows it whole.
+export function Streamed({ text = '', live = true, onGrow, cursor = true }) {
+  const words = useMemo(() => text.split(/(\s+)/), [text])
+  const [shown, setShown] = useState(live ? 0 : words.length)
+  useEffect(() => {
+    if (!live) { setShown(words.length); return }
+    setShown(0)
+    let i = 0, t
+    const tick = () => {
+      i += 2 // a word and the space after it
+      setShown(i)
+      onGrow?.()
+      if (i < words.length) t = setTimeout(tick, Math.max(55, (words[i]?.length || 3) * 22))
+    }
+    t = setTimeout(tick, 60)
+    return () => clearTimeout(t)
+  }, [text, live]) // eslint-disable-line react-hooks/exhaustive-deps
+  const done = shown >= words.length
+  return <>{words.slice(0, shown).join('')}{!done && cursor && <span className="ml-1 inline-block h-[1em] w-[3px] animate-pulse bg-violet align-[-0.15em]" />}</>
+}
+
 export function Orb({ level = 0, active = false, tone = 'calm', size = 220, label }) {
   const scale = 1 + Math.min(level, 1) * 0.28
   const grad = tone === 'bench'
