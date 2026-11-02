@@ -226,7 +226,7 @@ Fact keys must come from the needed list of the chosen issue. If you change issu
     # small models drift to Hinglish; restate the hard rules right next to the turn
     script = "English" if lang == "en" else f"{lang_info(lang)['english']} written in its own script"
     msgs.append({"role": "user", "content": f"{text}\n\n[Rules: the reply must be in {script}. Speak as a woman. Ask at most ONE question. Output JSON only.]"})
-    out = await llm.chat(keys, msgs, max_tokens=350, temperature=0.3, want_json=True)
+    out = await llm.chat(keys, msgs, max_tokens=350, temperature=0.3, want_json=True, fast=True)
     return llm.parse_json(out)
 
 

@@ -77,6 +77,7 @@ class Keys:
     fb_base: str = ""
     fb_key: str = ""
     fb_model: str = ""
+    fb_fast_model: str = ""
 
     @property
     def has_gnani(self) -> bool:
@@ -107,4 +108,5 @@ def resolve_keys(_overrides: dict | None = None) -> Keys:
         fb_base=os.getenv("BACKUP_LLM_BASE_URL", "").rstrip("/"),
         fb_key=os.getenv("BACKUP_LLM_API_KEY", ""),
         fb_model=os.getenv("BACKUP_LLM_MODEL", ""),
+        fb_fast_model=os.getenv("BACKUP_LLM_FAST_MODEL", ""),
     )

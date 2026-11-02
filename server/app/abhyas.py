@@ -351,7 +351,7 @@ Rebut the user's latest submission in at most 2 short spoken sentences, includin
         msgs.append({"role": "user" if h["role"] == "user" else "assistant", "content": h["text"]})
     try:
         # kept short, like Supreme: a quick reply feels live, a long one feels like a wait
-        out = await llm.chat(keys, msgs, max_tokens=110, temperature=0.6)
+        out = await llm.chat(keys, msgs, max_tokens=110, temperature=0.6, fast=True)
         if out:
             return out
     except Exception:

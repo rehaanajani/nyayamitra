@@ -30,15 +30,20 @@ class NoLLM(Exception):
 
 # A route that just failed is skipped for a while, so a dead Kaggle tunnel or an
 # exhausted Space costs one slow turn, not every turn.
-_COOLDOWN = {"kaggle": 120, "space": 900, "backup": 60}
+_COOLDOWN = {"kaggle": 120, "space": 900, "backup": 60, "backup-fast": 60}
 _failed_at: dict[str, float] = {}
 # Evon gets this long on its own before the next route starts racing it.
 HEDGE_AFTER = 2.5
-RETRY_BACKUP_AFTER = 7  # about 1 in 5 Gemini calls hangs while the rest answer in ~4 s
+# A silent Gemini call gets company after this long. Measured on our project: Flash-Lite
+# answers in ~1.4 s and Flash in 3-5 s, so anything slower than this has probably hung.
+RETRY_FAST_AFTER = 3
+RETRY_QUALITY_AFTER = 7
 
 
 async def chat(keys: Keys, messages: list[dict], *, max_tokens: int = 300,
-               temperature: float = 0.5, want_json: bool = False) -> str:
+               temperature: float = 0.5, want_json: bool = False, fast: bool = False) -> str:
+    """fast=True is for replies someone is waiting to hear (Sahay, opposing counsel). It leads
+    with the quickest Gemini; everything else leads with the one that reasons best."""
     if not keys.has_llm:
         raise NoLLM()
     routes = []  # (name, start, hard timeout in seconds), Evon first
@@ -48,20 +53,23 @@ async def chat(keys: Keys, messages: list[dict], *, max_tokens: int = 300,
     if keys.hf_token:
         routes.append(("space", lambda: _space_chat(keys.hf_token, messages, max_tokens), 25))
     if keys.fb_base and keys.fb_model:
-        routes.append(("backup", lambda: _openai_chat(keys.fb_base, keys.fb_key, keys.fb_model,
-                                                      messages, max_tokens, temperature, want_json), 30))
+        def gemini(model):
+            return lambda: _openai_chat(keys.fb_base, keys.fb_key, model, messages, max_tokens, temperature, want_json)
+        best = ("backup", gemini(keys.fb_model), 25)
+        quick = ("backup-fast", gemini(keys.fb_fast_model or keys.fb_model), 12 if fast else 25)
+        routes += [quick, best] if fast else [best, quick]
     now = time.time()
     live = [r for r in routes if now - _failed_at.get(r[0], 0) > _COOLDOWN[r[0]]] or routes[-1:]
-    return await _race(live)
+    return await _race(live, RETRY_FAST_AFTER if fast else RETRY_QUALITY_AFTER)
 
 
-async def _race(routes: list) -> str:
-    """Evon routes start together; the backup joins after HEDGE_AFTER seconds, or
-    at once if every Evon route has already failed. If the backup is still silent
-    after RETRY_BACKUP_AFTER, a second backup call joins. The first good answer wins.
-    Losers are left to finish in the background so their failures still count."""
-    evon = [r for r in routes if r[0] != "backup"]
-    backup = [r for r in routes if r[0] == "backup"]
+async def _race(routes: list, retry_after: float = RETRY_QUALITY_AFTER) -> str:
+    """Evon routes start together; Gemini joins after HEDGE_AFTER seconds, or at once
+    if every Evon route has already failed. If that Gemini call is still silent after
+    retry_after, the next one joins it. The first good answer wins. Losers are left to
+    finish in the background so their failures still count."""
+    evon = [r for r in routes if not r[0].startswith("backup")]
+    queue = [r for r in routes if r[0].startswith("backup")]
     pending: dict[asyncio.Task, str] = {}
     last_err: Exception | None = None
 
@@ -78,23 +86,21 @@ async def _race(routes: list) -> str:
         task.add_done_callback(lambda t, n=name: record(t, n))
         pending[task] = name
 
-    for r in evon or backup:
+    for r in evon:
         launch(*r)
-    queue = backup if evon else []
-    retry = list(backup)
+    if not evon and queue:
+        launch(*queue.pop(0))
     while pending:
-        backup_running = "backup" in pending.values()
-        wait_for = HEDGE_AFTER if queue else RETRY_BACKUP_AFTER if retry and backup_running else None
-        done, _ = await asyncio.wait(pending, timeout=wait_for, return_when=asyncio.FIRST_COMPLETED)
+        gemini_running = any(n.startswith("backup") for n in pending.values())
+        done, _ = await asyncio.wait(pending, timeout=(retry_after if gemini_running else HEDGE_AFTER) if queue else None,
+                                     return_when=asyncio.FIRST_COMPLETED)
         for task in done:
             pending.pop(task)
             if not task.exception() and task.result():
                 return task.result()
             last_err = task.exception() or RuntimeError("empty reply")
         if queue and (not done or not pending):
-            launch(*queue.pop(0))  # Evon is slow or gone: let the backup race it
-        elif not done and retry and backup_running:
-            launch(*retry.pop(0))  # the backup call looks hung: start another beside it
+            launch(*queue.pop(0))  # what's running is slow or gone: let the next route race it
     raise last_err or NoLLM()
 
 
@@ -179,7 +185,7 @@ async def _vertex_chat(base: str, key: str, model: str, messages: list[dict], ma
         # so leave room for the thinking on top of the spoken reply
         # no temperature: Gemini 3.x is tuned for its default and can loop below it
         "generationConfig": {"maxOutputTokens": max_tokens + 1024,
-                             # low thinking answers in ~4 s instead of 15-30 s
+                             # low thinking keeps replies quick and doesn't eat the token budget
                              "thinkingConfig": {"thinkingLevel": "LOW"}},
     }
     if system:
