@@ -34,6 +34,7 @@ _COOLDOWN = {"kaggle": 120, "space": 900, "backup": 60}
 _failed_at: dict[str, float] = {}
 # Evon gets this long on its own before the next route starts racing it.
 HEDGE_AFTER = 2.5
+RETRY_BACKUP_AFTER = 7  # about 1 in 5 Gemini calls hangs while the rest answer in ~4 s
 
 
 async def chat(keys: Keys, messages: list[dict], *, max_tokens: int = 300,
@@ -56,7 +57,8 @@ async def chat(keys: Keys, messages: list[dict], *, max_tokens: int = 300,
 
 async def _race(routes: list) -> str:
     """Evon routes start together; the backup joins after HEDGE_AFTER seconds, or
-    at once if every Evon route has already failed. The first good answer wins.
+    at once if every Evon route has already failed. If the backup is still silent
+    after RETRY_BACKUP_AFTER, a second backup call joins. The first good answer wins.
     Losers are left to finish in the background so their failures still count."""
     evon = [r for r in routes if r[0] != "backup"]
     backup = [r for r in routes if r[0] == "backup"]
@@ -79,9 +81,11 @@ async def _race(routes: list) -> str:
     for r in evon or backup:
         launch(*r)
     queue = backup if evon else []
+    retry = list(backup)
     while pending:
-        done, _ = await asyncio.wait(pending, timeout=HEDGE_AFTER if queue else None,
-                                     return_when=asyncio.FIRST_COMPLETED)
+        backup_running = "backup" in pending.values()
+        wait_for = HEDGE_AFTER if queue else RETRY_BACKUP_AFTER if retry and backup_running else None
+        done, _ = await asyncio.wait(pending, timeout=wait_for, return_when=asyncio.FIRST_COMPLETED)
         for task in done:
             pending.pop(task)
             if not task.exception() and task.result():
@@ -89,6 +93,8 @@ async def _race(routes: list) -> str:
             last_err = task.exception() or RuntimeError("empty reply")
         if queue and (not done or not pending):
             launch(*queue.pop(0))  # Evon is slow or gone: let the backup race it
+        elif not done and retry and backup_running:
+            launch(*retry.pop(0))  # the backup call looks hung: start another beside it
     raise last_err or NoLLM()
 
 
