@@ -1,0 +1,181 @@
+{
+"total": 148.16,
+"lines": [
+{
+"id": "adv",
+"scene": "cold",
+"voice": "Shubham",
+"caption": "\"My Lord, under Section 420 of the IPC, the accused is clearly guilty of cheating my client.\"",
+"start": 0,
+"dur": 5.975
+},
+{
+"id": "jud",
+"scene": "cold",
+"voice": "Prakash",
+"caption": "\"Stop, counsel. IPC 420? That no longer applies. Since 1 July 2024, cheating is BNS 318. Say it again with the right section.\"",
+"start": 6.075,
+"dur": 10.425
+},
+{
+"id": "hook",
+"scene": "hook",
+"voice": "Lakshmi",
+"caption": "That judge is an AI. And it just cut off counsel for citing a law India replaced in 2024.",
+"start": 16.85,
+"dur": 6.165
+},
+{
+"id": "p1",
+"scene": "problem",
+"voice": "Lakshmi",
+"caption": "India has 5.64 crore court cases pending.",
+"start": 23.465,
+"dur": 2.975
+},
+{
+"id": "p2",
+"scene": "problem",
+"voice": "Lakshmi",
+"caption": "More than 80% of Indians qualify for free legal aid. By 2019, only about 1.5 crore had ever used it.",
+"start": 26.69,
+"dur": 8.255
+},
+{
+"id": "p3",
+"scene": "citizen",
+"voice": "Lakshmi",
+"caption": "Because when your boss stops paying you, you do not think in sections and forms. You just want someone to tell you what to do next.",
+"start": 35.245,
+"dur": 6.955
+},
+{
+"id": "p4",
+"scene": "lawyer",
+"voice": "Lakshmi",
+"caption": "And the young lawyer who takes that case? India's criminal laws changed in July 2024. New names, new numbers. And when they rehearse at midnight, nobody pushes back.",
+"start": 42.5,
+"dur": 10.605
+},
+{
+"id": "s1",
+"scene": "intro",
+"voice": "Lakshmi",
+"caption": "So we built न्यायमित्र. A friend in court, whichever side of it you're on.",
+"start": 53.555,
+"dur": 4.345
+},
+{
+"id": "s2",
+"scene": "sahay",
+"voice": "Lakshmi",
+"caption": "Door one: सहाय. You just talk, the way you would to a friend.",
+"start": 58.25,
+"dur": 4.405
+},
+{
+"id": "cit",
+"scene": "sahay",
+"voice": "Chetana",
+"caption": "\"My boss hasn't paid my salary for three months.\"",
+"start": 62.855,
+"dur": 2.355
+},
+{
+"id": "sah",
+"scene": "sahay",
+"voice": "Lakshmi",
+"caption": "\"Where was the job: a company, a shop, a contractor, or with a person?\"",
+"start": 65.36,
+"dur": 5.805
+},
+{
+"id": "s3",
+"scene": "path",
+"voice": "Lakshmi",
+"caption": "She asks one thing at a time. Then she puts your path on screen: where to go, what to carry, your deadline, and a notice she drafts for you.",
+"start": 71.465,
+"dur": 8.015
+},
+{
+"id": "s4",
+"scene": "path",
+"voice": "Lakshmi",
+"caption": "The steps come from a checked legal knowledge base, not the model's imagination. And a free lawyer is one call away, on 15100.",
+"start": 79.68,
+"dur": 9.445
+},
+{
+"id": "s5",
+"scene": "abhyas",
+"voice": "Lakshmi",
+"caption": "Door two: अभ्यास. A full hearing, in five rounds. You argue, opposing counsel hits back, and the bench scores you both.",
+"start": 89.525,
+"dur": 8.065
+},
+{
+"id": "opp",
+"scene": "abhyas",
+"voice": "Devansh",
+"caption": "\"My Lord, showing a few UPI payments does not erase the offence under Section 318 BNS.\"",
+"start": 97.79,
+"dur": 7.235
+},
+{
+"id": "s6",
+"scene": "abhyas2",
+"voice": "Lakshmi",
+"caption": "In this hearing, our test lawyer argued against their own client by mistake. The bench noticed.",
+"start": 105.325,
+"dur": 5.195
+},
+{
+"id": "jud2",
+"scene": "abhyas2",
+"voice": "Prakash",
+"caption": "\"Counsel, by alleging dishonest intention against your own client, you are weakening their case.\"",
+"start": 110.67,
+"dur": 7.025
+},
+{
+"id": "s6b",
+"scene": "verdict",
+"voice": "Lakshmi",
+"caption": "Then it writes the verdict, and the one line you should have said.",
+"start": 117.995,
+"dur": 3.305
+},
+{
+"id": "s7",
+"scene": "tech",
+"voice": "Lakshmi",
+"caption": "Under the hood, it runs on Gnani. Prisma listens, even when Hindi and English mix. Timbre speaks, in ten Indian languages. Evon reasons, and if a route goes down, Gemini takes over in seconds, so the conversation never stops.",
+"start": 121.65,
+"dur": 15.005
+},
+{
+"id": "s8",
+"scene": "tech",
+"voice": "Lakshmi",
+"caption": "Every voice in this film is Timbre.",
+"start": 136.905,
+"dur": 2.215
+},
+{
+"id": "c1",
+"scene": "close",
+"voice": "Lakshmi",
+"caption": "\"Justice belongs to everyone.\"",
+"start": 139.57,
+"dur": 1.155
+},
+{
+"id": "c2",
+"scene": "close",
+"voice": "Lakshmi",
+"caption": "Justice should speak your language. Try न्यायमित्र. The link is in the post.",
+"start": 140.925,
+"dur": 4.635
+}
+]
+}
