@@ -1,0 +1,303 @@
+{
+ "sahay": [
+  {
+   "reply": "नौकरी कहाँ थी: किसी company में, दुकान पर, contractor के पास या किसी व्यक्ति के यहाँ?",
+   "state": {
+    "llm_error": "",
+    "issue_id": "salary",
+    "facts": {},
+    "pending_key": "employer"
+   }
+  },
+  {
+   "reply": "कितने महीने की salary बाकी है, और कुल कितने पैसे बनते हैं?",
+   "state": {
+    "llm_error": "",
+    "issue_id": "salary",
+    "facts": {
+     "employer": "मैं Pune में एक private company में काम करता हूँ, दो साल से।"
+    },
+    "pending_key": "months"
+   }
+  },
+  {
+   "reply": "ठीक है, ये documents काम आएंगे। क्या आप अभी भी वहाँ काम कर रहे हैं, या नौकरी छोड़ चुके हैं?",
+   "state": {
+    "llm_error": "",
+    "issue_id": "salary",
+    "facts": {
+     "employer": "मैं Pune में एक private company में काम करता हूँ, दो साल से।",
+     "months": "3 महीने की salary",
+     "proof": "offer letter, bank statement और HR को email"
+    },
+    "pending_key": "still_working"
+   }
+  },
+  {
+   "reply": "समझ गया। क्या आप अभी भी उस company में काम कर रहे हैं, या नौकरी छोड़ चुके हैं?",
+   "state": {
+    "llm_error": "",
+    "issue_id": "salary",
+    "facts": {
+     "employer": "मैं Pune में एक private company में काम करता हूँ, दो साल से।",
+     "months": "3 महीने की salary",
+     "proof": "offer letter, bank statement और HR को email"
+    },
+    "pending_key": "still_working"
+   }
+  },
+  {
+   "reply": "धन्यवाद। मैंने आपका रास्ता स्क्रीन पर रख दिया है: कहाँ जाना है, क्या ले जाना है, और समय सीमा। मुफ़्त वकील के लिए 15100 पर कॉल कर सकते हैं।",
+   "state": {
+    "llm_error": "",
+    "issue_id": "salary",
+    "facts": {
+     "employer": "मैं Pune में एक private company में काम करता हूँ, दो साल से।",
+     "months": "3 महीने की salary",
+     "proof": "offer letter, bank statement और HR को email",
+     "still_working": "नहीं, अभी तक कोई complaint नहीं की।"
+    },
+    "pending_key": null,
+    "done": true
+   },
+   "card": {
+    "issue_id": "salary",
+    "title": "Salary or wages not paid",
+    "urgent": false,
+    "forum": "Labour Department of your district (Inspector-cum-Facilitator / Labour Commissioner)",
+    "steps": [
+     "Write to the employer by email or WhatsApp asking for the exact unpaid amount by a date. Keep the reply, or the silence, as proof.",
+     "Send a legal notice demanding payment within 15 days. सहाय can draft it below.",
+     "File a wage claim with the Labour Department of your district. Many states accept it online, and the Shram Suvidha or Samadhan portals cover central-sphere establishments.",
+     "If the employer still does not pay, a civil suit for recovery of money is possible. Ask the DLSA for a free lawyer first."
+    ],
+    "documents": [
+     "Offer or appointment letter",
+     "Salary slips or bank statements showing past credits",
+     "Attendance proof or ID card",
+     "Messages with the employer about the payment"
+    ],
+    "deadline": "Act quickly. Wage claims have a time limit under the Code on Wages, 2019, and money recovery suits generally have three years under the Limitation Act. Verify your exact deadline with the DLSA.",
+    "cost": "A Labour Department complaint is usually free. You do not need a lawyer to file it.",
+    "facts": [
+     {
+      "q": "Who is the employer: a company, shop, contractor or person?",
+      "a": "मैं Pune में एक private company में काम करता हूँ, दो साल से।"
+     },
+     {
+      "q": "For how many months is the salary pending, and roughly how much in total?",
+      "a": "3 महीने की salary"
+     },
+     {
+      "q": "Do you have any proof: offer letter, salary slips, bank credits, WhatsApp messages or an attendance record?",
+      "a": "offer letter, bank statement और HR को email"
+     },
+     {
+      "q": "Are you still working there, or did you leave or get removed?",
+      "a": "नहीं, अभी तक कोई complaint नहीं की।"
+     }
+    ],
+    "helplines": [
+     {
+      "id": "legal_aid",
+      "label": "NALSA free legal aid",
+      "number": "15100"
+     },
+     {
+      "id": "emergency",
+      "label": "Emergency (police, ambulance, fire)",
+      "number": "112"
+     }
+    ],
+    "legal_aid": {
+     "title": "Free lawyer from the District Legal Services Authority (DLSA)",
+     "body": "Every district has a DLSA that gives a free lawyer to eligible people under Section 12 of the Legal Services Authorities Act, 1987: women and children, SC/ST members, industrial workmen, people in custody, persons with disabilities, victims of disaster or trafficking, and people below the state's income limit. Call 15100 or visit the DLSA office at your district court."
+    },
+    "draft": "legal_notice_salary",
+    "practice_case": null,
+    "reviewed": false
+   }
+  }
+ ],
+ "abhyas": [
+  {
+   "url": "https://nyayamitra-api-7dipub6maa-el.a.run.app/api/abhyas/interject",
+   "req": {
+    "case_id": "anticipatory-bail",
+    "lang": "hi",
+    "partial": "My Lord, under Section 420 of the IPC the accused is clearly guilty of cheating my client.",
+    "seconds": 0
+   },
+   "res": {
+    "interjection": {
+     "speaker": "judge",
+     "text": "रुकिए counsel। IPC 420? वो अब लागू नहीं है। एक जुलाई दो हज़ार चौबीस से cheating के लिए BNS 318 है। सही धारा से दोबारा बोलिए।",
+     "flags": [
+      {
+       "type": "old_citation",
+       "old": "IPC 420",
+       "new": "BNS 318",
+       "topic": "cheating"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "url": "https://nyayamitra-api-7dipub6maa-el.a.run.app/api/abhyas/interject",
+   "req": {
+    "case_id": "anticipatory-bail",
+    "lang": "hi",
+    "partial": "My Lord, under Section 318 of the Bharatiya Nyaya Sanhita this is cheating, and the bank records show the money moved the same day.",
+    "seconds": 0
+   },
+   "res": {
+    "interjection": null
+   }
+  },
+  {
+   "url": "https://nyayamitra-api-7dipub6maa-el.a.run.app/api/abhyas/round",
+   "req": {
+    "case_id": "anticipatory-bail",
+    "side": "petitioner",
+    "lang": "hi",
+    "temperament": "fair",
+    "text": "My Lord, under Section 318 of the Bharatiya Nyaya Sanhita this is cheating, and the bank records show the money moved the same day.",
+    "history": [],
+    "round": 1,
+    "stage": "opponent"
+   },
+   "res": {
+    "opponent": {
+     "speaker": "opponent",
+     "text": "My Lord, केवल कुछ UPI पेमेंट दिखा देने से Section 318(4), BNS का अपराध खत्म नहीं हो जाता क्योंकि बाकी माल हड़पने की नीयत शुरू से ही बेईमानी की थी। बकाया माल और पैसे की रिकवरी के लिए अभियुक्त की custodial interrogation बेहद जरूरी है, इसलिए यह anticipatory bail का मामला नहीं बनता।"
+    }
+   }
+  },
+  {
+   "url": "https://nyayamitra-api-7dipub6maa-el.a.run.app/api/abhyas/round",
+   "req": {
+    "case_id": "anticipatory-bail",
+    "side": "petitioner",
+    "lang": "hi",
+    "temperament": "fair",
+    "text": "My Lord, under Section 318 of the Bharatiya Nyaya Sanhita this is cheating, and the bank records show the money moved the same day.",
+    "history": [],
+    "round": 1,
+    "stage": "bench",
+    "opponent": "My Lord, केवल कुछ UPI पेमेंट दिखा देने से Section 318(4), BNS का अपराध खत्म नहीं हो जाता क्योंकि बाकी माल हड़पने की नीयत शुरू से ही बेईमानी की थी। बकाया माल और पैसे की रिकवरी के लिए अभियुक्त की custodial interrogation बेहद जरूरी है, इसलिए यह anticipatory bail का मामला नहीं बनता।"
+   },
+   "res": {
+    "bench": {
+     "speaker": "judge",
+     "text": "ठीक है। अगले round में यह साफ़ कीजिए: UPI proof of ₹1.6 lakh?",
+     "scores": {
+      "you": {
+       "law": 52,
+       "facts": 50,
+       "bench_handling": 54,
+       "delivery": 52
+      },
+      "them": {
+       "law": 69,
+       "facts": 74,
+       "bench_handling": 65,
+       "delivery": 70
+      }
+     }
+    }
+   }
+  },
+  {
+   "url": "https://nyayamitra-api-7dipub6maa-el.a.run.app/api/abhyas/interject",
+   "req": {
+    "case_id": "anticipatory-bail",
+    "lang": "hi",
+    "partial": "The accused had dishonest intention from the start, because the promise was made after the account was already empty.",
+    "seconds": 0
+   },
+   "res": {
+    "interjection": null
+   }
+  },
+  {
+   "url": "https://nyayamitra-api-7dipub6maa-el.a.run.app/api/abhyas/round",
+   "req": {
+    "case_id": "anticipatory-bail",
+    "side": "petitioner",
+    "lang": "hi",
+    "temperament": "fair",
+    "text": "The accused had dishonest intention from the start, because the promise was made after the account was already empty.",
+    "history": [
+     {
+      "role": "user",
+      "text": "My Lord, under Section 318 of the Bharatiya Nyaya Sanhita this is cheating, and the bank records show the money moved the same day."
+     },
+     {
+      "role": "opponent",
+      "text": "My Lord, केवल कुछ UPI पेमेंट दिखा देने से Section 318(4), BNS का अपराध खत्म नहीं हो जाता क्योंकि बाकी माल हड़पने की नीयत शुरू से ही बेईमानी की थी। बकाया माल और पैसे की रिकवरी के लिए अभियुक्त की custodial interrogation बेहद जरूरी है, इसलिए यह anticipatory bail का मामला नहीं बनता।"
+     },
+     {
+      "role": "judge",
+      "text": "ठीक है। अगले round में यह साफ़ कीजिए: UPI proof of ₹1.6 lakh?"
+     }
+    ],
+    "round": 2,
+    "stage": "opponent"
+   },
+   "res": {
+    "opponent": {
+     "speaker": "opponent",
+     "text": "My Lord, जब यह खुद मान रहे हैं कि शुरुआत से ही बेईमानी की नीयत थी, तो Section 318(4), BNS का संज्ञेय अपराध पूरी तरह साबित होता है। अभियुक्त महीनों से शिकायतकर्ता से बच रहा था, इसलिए अगर इसे anticipatory bail मिली तो यह जांच में बिल्कुल सहयोग नहीं करेगा और फरार हो जाएगा।"
+    }
+   }
+  },
+  {
+   "url": "https://nyayamitra-api-7dipub6maa-el.a.run.app/api/abhyas/round",
+   "req": {
+    "case_id": "anticipatory-bail",
+    "side": "petitioner",
+    "lang": "hi",
+    "temperament": "fair",
+    "text": "The accused had dishonest intention from the start, because the promise was made after the account was already empty.",
+    "history": [
+     {
+      "role": "user",
+      "text": "My Lord, under Section 318 of the Bharatiya Nyaya Sanhita this is cheating, and the bank records show the money moved the same day."
+     },
+     {
+      "role": "opponent",
+      "text": "My Lord, केवल कुछ UPI पेमेंट दिखा देने से Section 318(4), BNS का अपराध खत्म नहीं हो जाता क्योंकि बाकी माल हड़पने की नीयत शुरू से ही बेईमानी की थी। बकाया माल और पैसे की रिकवरी के लिए अभियुक्त की custodial interrogation बेहद जरूरी है, इसलिए यह anticipatory bail का मामला नहीं बनता।"
+     },
+     {
+      "role": "judge",
+      "text": "ठीक है। अगले round में यह साफ़ कीजिए: UPI proof of ₹1.6 lakh?"
+     }
+    ],
+    "round": 2,
+    "stage": "bench",
+    "opponent": "My Lord, जब यह खुद मान रहे हैं कि शुरुआत से ही बेईमानी की नीयत थी, तो Section 318(4), BNS का संज्ञेय अपराध पूरी तरह साबित होता है। अभियुक्त महीनों से शिकायतकर्ता से बच रहा था, इसलिए अगर इसे anticipatory bail मिली तो यह जांच में बिल्कुल सहयोग नहीं करेगा और फरार हो जाएगा।"
+   },
+   "res": {
+    "bench": {
+     "speaker": "judge",
+     "text": "Counsel, आप अपने ही मुवक्किल के खिलाफ dishonest intention की बात कहकर उनका केस कमजोर कर रहे हैं। इस मामले में ₹1.6 lakh के कथित UPI लेनदेन पर आपका क्या कहना है और क्या यह सिर्फ एक civil dispute नहीं है?",
+     "scores": {
+      "you": {
+       "law": 20,
+       "facts": 25,
+       "bench_handling": 20,
+       "delivery": 30
+      },
+      "them": {
+       "law": 85,
+       "facts": 80,
+       "bench_handling": 90,
+       "delivery": 85
+      }
+     }
+    }
+   }
+  }
+ ]
+}
