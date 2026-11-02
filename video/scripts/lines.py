@@ -26,3 +26,20 @@ LINES = [
  ('c1','close',L,'hi-IN','न्याय सबका है।','"Justice belongs to everyone."',0.2),
  ('c2','close',L,'en-IN','Justice should speak your language. Try Nyaya Mitra. The link is in the post.','Justice should speak your language. Try न्यायमित्र. The link is in the post.',2.6),
 ]
+
+# The 60-second LinkedIn cut. Ids that also appear above reuse the same recording.
+SHORT = [
+ ('adv6','cold',A,'en-IN','My Lord, under Section 420 of the IPC,','"My Lord, under Section 420 of the IPC,"',0.0),
+ ('jud6','cold',J,'hi-IN','रुकिए counsel। IPC 420? वो अब लागू नहीं है। Cheating के लिए BNS 318 है।','"Stop, counsel. IPC 420? That no longer applies. Cheating is BNS 318."',0.25),
+ ('h6','hook',L,'en-IN','That judge is an AI. And it just caught a law India replaced in 2024.','That judge is an AI. And it just caught a law India replaced in 2024.',0.3),
+ ('p6','problem',L,'en-IN','India has five point six four crore court cases pending. And when your boss stops paying you, you just want to know what\'s next.','India has 5.64 crore court cases pending. And when your boss stops paying you, you just want to know what\'s next.',0.3),
+ ('s16','intro',L,'en-IN','So we built Nyaya Mitra. A friend in court.','So we built न्यायमित्र. A friend in court.',0.25),
+ ('s26','sahay',L,'en-IN','Door number one, Sahay. You just talk.','Door one: सहाय. You just talk.',0.1),
+ ('cit','sahay',C,'hi-IN','मेरे boss ने तीन महीने से salary नहीं दी।','"My boss hasn\'t paid my salary for three months."',0.15),
+ ('s36','path',L,'en-IN','She asks one thing at a time, then gives you the path: where to go, what to carry, your deadline.','She asks one thing at a time, then gives you the path: where to go, what to carry, your deadline.',0.25),
+ ('s56','abhyas',L,'en-IN','Door number two, Abhyas. You argue, the other side hits back, the bench scores you.','Door two: अभ्यास. You argue, the other side hits back, the bench scores you.',0.2),
+ ('s66','abhyas2',L,'en-IN','Argue against your own client? The bench notices.','Argue against your own client? The bench notices.',0.1),
+ ('jud2','abhyas2',J,'hi-IN','Counsel, आप अपने ही मुवक्किल के खिलाफ dishonest intention की बात कहकर उनका केस कमजोर कर रहे हैं।','"Counsel, by alleging dishonest intention against your own client, you are weakening their case."',0.25),
+ ('t6','tech',L,'en-IN','Every voice you just heard is Gyaani Timbre.','Every voice you just heard is Gnani Timbre.',0.25),
+ ('c26','close',L,'en-IN','Justice should speak your language. The link is in the post.','Justice should speak your language. The link is in the post.',1.6),
+]

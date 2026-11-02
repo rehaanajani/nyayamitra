@@ -97,7 +97,7 @@ export const Pill = ({ children, style }) => (
   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 14, borderRadius: 999, background: C.ink, color: '#fff', padding: '14px 28px', fontFamily: F.sans, fontWeight: 500, fontSize: 30, ...style }}>{children}</div>
 )
 
-const TAG = { adv: 'ADVOCATE', jud: 'THE BENCH', jud2: 'THE BENCH', cit: 'CALLER', sah: 'सहाय', opp: 'OPPOSING COUNSEL' }
+const TAG = { adv: 'ADVOCATE', adv6: 'ADVOCATE', jud: 'THE BENCH', jud6: 'THE BENCH', jud2: 'THE BENCH', cit: 'CALLER', sah: 'सहाय', opp: 'OPPOSING COUNSEL' }
 
 function chunks(text, max = 66) {
   const parts = text.match(/[^.?!:,]+[.?!:,]*["']?\s*/g) ?? [text]

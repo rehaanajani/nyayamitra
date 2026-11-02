@@ -28,8 +28,8 @@ const Fade = ({ children }) => {
   return <AbsoluteFill style={{ opacity: interpolate(f, [0, 9], [0, 1], clamp) }}>{children}</AbsoluteFill>
 }
 
-const Kicker = ({ children, style }) => <div style={{ fontFamily: F.sans, fontSize: 25, fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: C.muted, ...style }}>{children}</div>
-const Big = ({ children, style }) => <div style={{ fontFamily: F.display, fontSize: 120, lineHeight: 1.04, color: C.ink, letterSpacing: '-0.01em', ...style }}>{children}</div>
+export const Kicker = ({ children, style }) => <div style={{ fontFamily: F.sans, fontSize: 25, fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: C.muted, ...style }}>{children}</div>
+export const Big = ({ children, style }) => <div style={{ fontFamily: F.display, fontSize: 120, lineHeight: 1.04, color: C.ink, letterSpacing: '-0.01em', ...style }}>{children}</div>
 
 // ---- cold open: the hook is a real interruption from the app
 const Cold = () => {
@@ -61,7 +61,7 @@ const Hook = () => {
 }
 
 // ---- problem: stat cards pile up
-const Stat = ({ num, label, src, tint }) => (
+export const Stat = ({ num, label, src, tint }) => (
   <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 110px', background: tint }}>
     <Kicker>The problem</Kicker>
     <div style={{ fontFamily: F.display, fontSize: 250, lineHeight: 1.05, color: C.ink, marginTop: 8 }}>{num}</div>
@@ -130,7 +130,7 @@ const Intro = () => (
   </Wash>
 )
 
-const Door = ({ n, deva, at: a }) => (
+export const Door = ({ n, deva, at: a }) => (
   <Pop at={a} style={{ position: 'absolute', left: 60, top: 42, zIndex: 20 }}><Pill style={{ fontSize: 30 }}>Door {n} <span style={{ fontFamily: F.deva, fontSize: 38, lineHeight: 1 }}>{deva}</span></Pill></Pop>
 )
 
@@ -199,7 +199,7 @@ const Verdict = () => (
   </Wash>
 )
 
-const Model = ({ name, verb, role, active }) => (
+export const Model = ({ name, verb, role, active }) => (
   <div style={{ width: '100%', height: '100%', padding: '40px 44px', background: 'rgba(255,255,255,.92)' }}>
     <span style={{ display: 'inline-block', borderRadius: 12, background: C.peach, color: C.peachInk, padding: '10px 16px', fontFamily: F.sans, fontWeight: 500, fontSize: 22, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{role}</span>
     <div style={{ fontFamily: F.display, fontSize: 104, color: C.ink, marginTop: 26, lineHeight: 1 }}>{name}</div>
@@ -225,15 +225,15 @@ const Tech = () => {
   )
 }
 
-const Close = () => {
+export const Close = ({ quick = false }) => {
   const f = useCurrentFrame()
   return (
     <Wash>
       <div style={{ position: 'absolute', left: 800, right: 50, top: 130, textAlign: 'center' }}>
         <Rise at={2}><div style={{ fontFamily: F.deva, fontSize: 138, lineHeight: 1.15, color: C.ink }}>न्याय सबका है।</div></Rise>
-        <Rise at={38}><div style={{ fontFamily: F.display, fontSize: 70, color: C.ink, marginTop: 6 }}>Justice should speak your language.</div></Rise>
-        <Pop at={70} style={{ marginTop: 44 }}><Pill style={{ fontSize: 42, padding: '20px 44px' }}>nyayamitra-gnani.vercel.app</Pill></Pop>
-        <Rise at={100} style={{ marginTop: 50, fontFamily: F.sans, fontSize: 30, color: C.ink2, lineHeight: 1.5 }}>
+        <Rise at={quick ? 14 : 38}><div style={{ fontFamily: F.display, fontSize: 70, color: C.ink, marginTop: 6 }}>Justice should speak your language.</div></Rise>
+        <Pop at={quick ? 34 : 70} style={{ marginTop: 44 }}><Pill style={{ fontSize: 42, padding: '20px 44px' }}>nyayamitra-gnani.vercel.app</Pill></Pop>
+        <Rise at={quick ? 48 : 100} style={{ marginTop: 50, fontFamily: F.sans, fontSize: 30, color: C.ink2, lineHeight: 1.5 }}>
           Rehaan Ajani · Raghav Maheshwari<br />
           <span style={{ fontWeight: 500, color: C.ink }}>#GreatIndianAIInternshipChallenge #GnaniAI</span>
           <div style={{ fontSize: 21, color: C.muted, marginTop: 18, lineHeight: 1.4 }}>Legal information, not legal advice.<br />Music: Scott Buckley, The Long Dark (CC BY 3.0). Sound: Wikimedia Commons.</div>

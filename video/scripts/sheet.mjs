@@ -4,7 +4,7 @@ import { renderStill, selectComposition } from '@remotion/renderer'
 import { chromium } from 'playwright'
 const secs = process.argv.slice(3).map(Number); const name = process.argv[2]
 const serveUrl = await bundle({ entryPoint: 'src/index.jsx', publicDir: 'public' })
-const composition = await selectComposition({ serveUrl, id: 'Launch' })
+const composition = await selectComposition({ serveUrl, id: process.env.COMP ?? 'Launch' })
 const files = []
 await Promise.all(secs.map(async (s) => { const output = `out/chk/${name}-${s}.png`; await renderStill({ composition, serveUrl, output, frame: Math.round(s * 30), scale: 0.4 }); files.push([s, output]) }))
 files.sort((a, b) => a[0] - b[0])
