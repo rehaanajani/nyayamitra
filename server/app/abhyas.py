@@ -326,7 +326,7 @@ def _case_without_model(text: str, lang: str) -> dict:
 
 async def _case_with_model(keys: Keys, text: str, lang: str) -> dict:
     out = await llm.chat(keys, [
-        {"role": "system", "content": "You convert a legal problem into a practice hearing for an Indian district or consumer court. Use BNS/BNSS/BSA, never IPC/CrPC. Return ONLY JSON."},
+        {"role": "system", "content": "You convert a legal problem into a practice hearing for an Indian district or consumer court. Use BNS/BNSS/BSA, never IPC/CrPC. Pick the forum that actually hears this kind of matter: a criminal complaint (cheating, fraud, theft) goes to the Judicial Magistrate; a bail plea to the Sessions Court; unpaid wages to the Labour Commissioner or civil court; a consumer forum only for defective goods or deficient services bought by the complainant. Return ONLY JSON."},
         {"role": "user", "content": f"""Source:
 {text[:6000]}
 
