@@ -12,7 +12,7 @@ const ctx = await b.newContext({ viewport: { width: 1440, height: 810 }, deviceS
 const p = await ctx.newPage()
 const events = []; const sounds = []; const frames = []
 const ttsTexts = []
-p.on('request', (r) => { if (r.url().includes('/api/tts') && r.method() === 'POST') { try { ttsTexts.push(r.postDataJSON().text.replace(/^<[^>]+>\s*/, '')) } catch {} } })
+p.on('request', (r) => { if (r.url().includes('/api/tts') && r.method() === 'POST') { try { { const d = r.postDataJSON(); ttsTexts.push({ text: d.text.replace(/^<[^>]+>\s*/, ''), role: d.role }) } } catch {} } })
 const mark = (name, extra) => { events.push({ t: Date.now(), name, ...extra }); console.log(name, extra ? JSON.stringify(extra).slice(0, 140) : '') }
 
 function wav(float32, sr) {
@@ -93,7 +93,7 @@ if (clip === 'sahay') {
   await p.screenshot({ path: `${DIR}/verdict.png` }); await p.mouse.wheel(0, 500); await wait(2500); await p.mouse.wheel(0, 500); await wait(2500)
 }
 await cdp.send('Page.stopScreencast').catch(() => {})
-sounds.filter((x) => x.kind === 'app').forEach((x, i) => { x.text = ttsTexts[i] ?? '' })
+sounds.filter((x) => x.kind === 'app').forEach((x, i) => { x.text = ttsTexts[i]?.text ?? ''; x.role = ttsTexts[i]?.role ?? '' })
 fs.writeFileSync(`${DIR}/index.json`, JSON.stringify({ frames, sounds, events }))
 const dt = (frames.at(-1).t - frames[0].t) / 1000; console.log('frames', frames.length, 'over', dt.toFixed(0) + 's', 'fps', (frames.length / dt).toFixed(1))
 await b.close()
