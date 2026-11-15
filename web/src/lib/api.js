@@ -1,5 +1,5 @@
 // All API keys live in server/.env; the browser never sees them.
-// In production the backend runs separately (Cloud Run); VITE_API_BASE points at it.
+// In production the backend runs separately (Render); VITE_API_BASE points at it.
 export const API_BASE = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '')
 
 export async function api(path, body, opts = {}) {
