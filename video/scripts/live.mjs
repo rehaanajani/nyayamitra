@@ -71,6 +71,9 @@ if (clip === 'sahay') {
   await p.keyboard.press('Escape'); await wait(1000)
 } else {
   await p.goto(SITE + '/#/abhyas'); await wait(2500); mark('page')
+  if (process.env.BUILTIN) { // a ready-made case, which needs no model to build
+    await p.locator('button.card').first().click(); await wait(1500)
+  } else {
   const story = 'Meena, a garment worker in Lucknow, has not been paid for three months. Her employer promised payment in writing again and again and kept taking her work, with no intention of paying. She filed a complaint alleging cheating. We act for Meena.'
   const box = p.locator('textarea').first(); await box.scrollIntoViewIfNeeded(); await wait(400); mark('typing')
   await box.pressSequentially(story, { delay: 16 }); await wait(500)
@@ -78,6 +81,7 @@ if (clip === 'sahay') {
   for (let i = 0; i < 4 && !(await enter.count()); i++) {
     await p.getByRole('button', { name: /Build practice case/ }).click(); mark('building', { try: i })
     await enter.waitFor({ timeout: 45000 }).catch(() => {})
+  }
   }
   await wait(1800); mark('built')
   await p.screenshot({ path: `${DIR}/setup.png` })
