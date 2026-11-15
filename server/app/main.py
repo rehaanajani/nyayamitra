@@ -63,6 +63,8 @@ class TTSReq(BaseModel):
 
 
 _tts_lock = asyncio.Lock()
+# Lines the bench says again and again ("ठीक है।", the opening, a correction) are made once.
+_tts_cache: dict[tuple, bytes] = {}
 
 
 @app.post("/api/tts")
@@ -74,11 +76,18 @@ async def tts(req: TTSReq, request: Request):
         raise HTTPException(400, "Gnani has no voice for this language yet; text only")
     # Gnani allows one voice request at a time per key, and every visitor shares the key:
     # queue them here, wait out "busy" replies, and never pass on a file with no audio.
+    voice = VOICES.get(req.role, VOICES["sahay"])
+    hit = _tts_cache.get((req.text, req.lang, voice))
+    if hit:
+        return Response(hit, media_type="audio/wav")
     async with _tts_lock:
         for attempt in range(4):
             try:
-                wav = await gnani.synthesize(req.text[:900], req.lang, VOICES.get(req.role, VOICES["sahay"]), k.gnani_key)
+                wav = await gnani.synthesize(req.text[:900], req.lang, voice, k.gnani_key)
                 if len(wav) > 2000:
+                    if len(_tts_cache) >= 300:
+                        _tts_cache.pop(next(iter(_tts_cache)))
+                    _tts_cache[(req.text, req.lang, voice)] = wav
                     return Response(wav, media_type="audio/wav")
                 err = "Timbre returned no audio"
             except gnani.GnaniError as e:
