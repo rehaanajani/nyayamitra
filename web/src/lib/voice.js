@@ -180,7 +180,10 @@ export function createSpeaker({ onStart, onEnd, onLevel, onSentence } = {}) {
         const buf = await next
         if (my !== token) return
         next = i + 1 < parts.length ? fetchAudio(parts[i + 1], lang, role) : null
-        const audio = await c.decodeAudioData(buf)
+        let audio
+        try { audio = await c.decodeAudioData(buf) } catch { // a bad file: ask once more before giving up
+          audio = await c.decodeAudioData(await fetchAudio(parts[i], lang, role))
+        }
         if (my !== token) return
         // tell the screen which words this audio covers, so text and voice stay together
         const at = text.indexOf(plain[i], spoken)
