@@ -5,6 +5,8 @@ knowledge/statutes.json, so the bench's corrections are always right. The LLM
 plays the judge and the opponent and writes the debrief.
 """
 
+import asyncio
+import difflib
 import json
 import os
 import re
@@ -260,7 +262,69 @@ JSON: {{"scores": {{"law": n, "facts": n, "bench_handling": n, "delivery": n}}, 
 
 
 async def case_from_text(keys: Keys, text: str, lang: str) -> dict:
-    """Turn a pasted story, FIR text or judgment summary into a practice case."""
+    """Turn a pasted story, FIR text or judgment summary into a practice case. When no model
+    answers in time, a simpler case is built from the text itself, so the hearing still starts."""
+    try:
+        case = await asyncio.wait_for(_case_with_model(keys, text, lang), 30)
+    except Exception:
+        case = _case_without_model(text, lang)
+    CUSTOM_CASES[case["id"]] = case
+    return _public(case)
+
+
+# What a bench presses on, and what the other side argues, for common kinds of matter.
+_KINDS = [
+    ("cheating", r"cheat|fraud|dishonest|\b420\b|\b318\b|धोखा", "alleged cheating",
+     ["What shows dishonest intention at the very start, and not just a later failure to pay?",
+      "Is this a civil dispute dressed up as a criminal complaint?",
+      "Which document shows the promise was false when it was made?"],
+     ["This is a commercial dispute, not cheating; a later failure to pay does not prove dishonest intention at the start.",
+      "Nothing on record shows the promise was false when it was made."]),
+    ("salary", r"salary|wage|unpaid|not been paid|payment|वेतन|तनख्वाह|पैसे", "unpaid wages",
+     ["Why not go to the Labour Commissioner or claim under the Code on Wages, 2019?",
+      "What proves the work done and the exact amount due?"],
+     ["The delay came from business losses; wages are being paid in instalments.",
+      "The proper forum for a wage claim is the Labour Commissioner, not this court."]),
+    ("bail", r"\bbail\b|arrest|custody|जमानत", "a bail application",
+     ["Is custodial interrogation really needed here?", "What about flight risk and roots in the community?"],
+     ["Custodial interrogation is needed to recover the money and documents.",
+      "The accused may tamper with evidence if released."]),
+    ("consumer", r"consumer|refund|defect|warranty|deficiency", "a consumer complaint",
+     ["Is the complainant a consumer under the Consumer Protection Act, 2019?", "Is the complaint within limitation?"],
+     ["The complainant used the goods for a commercial purpose and is not a consumer.",
+      "The product was used against the instructions, which voids the warranty."]),
+    ("tenancy", r"landlord|tenant|deposit|rent|किराया", "a tenancy dispute",
+     ["What does the rent agreement say about the deposit?", "What proof is there of the condition of the premises?"],
+     ["The deposit was adjusted against damage to the premises and unpaid charges."]),
+]
+
+
+def _case_without_model(text: str, lang: str) -> dict:
+    t = " ".join(text.split())
+    low = t.lower()
+    kinds = [k for k in _KINDS if re.search(k[1], low)]
+    sentences = [x.strip() for x in re.split(r"(?<=[.!?।])\s+", t) if len(x.strip()) > 3]
+    client = re.search(r"\b(?:we|i)\s+(?:act|appear)\s+for\s+(?:the\s+)?([A-Z][\w.]*(?:\s[A-Z][\w.]*)?)", t, re.I)
+    criminal = any(k[0] in ("cheating", "bail") for k in kinds)
+    consumer = any(k[0] == "consumer" for k in kinds)
+    court = ("District Consumer Disputes Redressal Commission" if consumer
+             else "Court of the Judicial Magistrate First Class" if criminal else "District Court")
+    focus = [q for k in kinds for q in k[3]] + ["Is there a Section 63 BSA certificate for the electronic records?"]
+    return {
+        "id": "custom-" + uuid.uuid4().hex[:8],
+        "title": "Practice matter: " + (", ".join(k[2] for k in kinds[:2]) if kinds else "your case"),
+        "court": court,
+        "language": lang,
+        "stage": "Arguments" if not any(k[0] == "bail" for k in kinds) else "Bail hearing",
+        "you_are": f"Counsel for {client.group(1).rstrip('.,')}" if client else "Counsel for your client",
+        "opponent": "Counsel for the accused" if criminal else "Counsel for the other side",
+        "facts": sentences[:6] or [t[:300]],
+        "bench_focus": focus[:6] if kinds else ["Which section applies here, and why?", "What is your strongest piece of evidence?"],
+        "opponent_points": [a for k in kinds for a in k[4]][:5],
+    }
+
+
+async def _case_with_model(keys: Keys, text: str, lang: str) -> dict:
     out = await llm.chat(keys, [
         {"role": "system", "content": "You convert a legal problem into a practice hearing for an Indian district or consumer court. Use BNS/BNSS/BSA, never IPC/CrPC. Return ONLY JSON."},
         {"role": "user", "content": f"""Source:
@@ -272,7 +336,7 @@ Replace real names of private people with invented ones."""},
     data = llm.parse_json(out)
     if not data or not data.get("facts"):
         raise ValueError("could not build a case from that text")
-    case = {
+    return {
         "id": "custom-" + uuid.uuid4().hex[:8],
         "title": str(data.get("title", "Custom matter")),
         "court": str(data.get("court", "District Court")),
@@ -283,8 +347,6 @@ Replace real names of private people with invented ones."""},
         "facts": [str(x) for x in data["facts"]][:8],
         "bench_focus": [str(x) for x in data.get("bench_focus", [])][:8] or ["What is your strongest point?"],
     }
-    CUSTOM_CASES[case["id"]] = case
-    return _public(case)
 
 
 AXES = ("law", "facts", "bench_handling", "delivery")
@@ -346,21 +408,38 @@ Matter: {case['title']}. The user is: {case['you_are']}.
 Facts: {json.dumps(case['facts'], ensure_ascii=False)}
 Your side's strongest points: {json.dumps(their, ensure_ascii=False)}
 Rebut the user's latest submission in at most 2 short spoken sentences, including one fresh point for your side. Address the bench as "My Lord" (or "My Lords" in the Supreme Court). Speak in {speech_style(lang)}. {law_rule} No lists, no markdown, never invent case names."""
+    said = [h["text"] for h in history if h["role"] == "opponent" and h.get("text")]
+    if said:
+        system += "\nYou already said these; make a different point now:\n- " + "\n- ".join(said[-4:])
     msgs = [{"role": "system", "content": system}]
     for h in history[-8:]:
         msgs.append({"role": "user" if h["role"] == "user" else "assistant", "content": h["text"]})
     try:
         # kept short, like Supreme: a quick reply feels live, a long one feels like a wait
         out = await llm.chat(keys, msgs, max_tokens=110, temperature=0.6, fast=True)
-        if out:
+        if out and not _repeats(out, said):
             return out
     except Exception:
         pass
-    if their:
-        arg = their[(round_no - 1) % len(their)]
-        lead = "My Lords" if "sides" in case else "My Lord"
-        return f"{lead}, with respect to my learned friend: {arg}"
-    return "My Lord, my learned friend has not shown anything on record to support that."
+    lead = "My Lords" if "sides" in case else "My Lord"
+    for i in range(len(their)):  # a prepared point counsel hasn't used yet
+        arg = their[(round_no - 1 + i) % len(their)]
+        if not any(arg in x for x in said):
+            return f"{lead}, with respect to my learned friend: {arg}"
+    generic = ["my learned friend has not shown anything on record to support that.",
+               "that is an assertion, not evidence; nothing filed supports it.",
+               "my learned friend is asking the court to presume what has not been proved."]
+    return f"{lead}, " + next((g for g in generic if not any(g in x for x in said)), generic[0])
+
+
+def _repeats(text: str, earlier: list[str]) -> bool:
+    """True when a reply is mostly something counsel already said."""
+    a = text.lower().split()
+    for e in earlier:
+        b = e.lower().split()
+        if a and b and difflib.SequenceMatcher(None, a, b).ratio() > 0.6:
+            return True
+    return False
 
 
 async def bench_remark(keys: Keys, case: dict, lang: str, temperament: str, history: list[dict],
