@@ -88,6 +88,20 @@ export function sentences(text) {
   return (text.match(/(?:[^.!?।\n]|\.(?=\d)|(?<=\b(?:Rs|No|Sec|Dr|Mr|Mrs|vs))\.)+[.!?।]*/g) || [text]).map((s) => s.trim()).filter(Boolean)
 }
 
+// Each request to Timbre takes a few seconds whatever its length, so a reply split into
+// many short sentences plays with gaps. The first sentence goes alone, so speech starts
+// quickly; the rest is grouped into a few larger pieces that load while it plays.
+export function speechChunks(parts, max = 360) {
+  if (parts.length < 2) return parts
+  const out = [parts[0]]
+  let cur = ''
+  for (const p of parts.slice(1)) {
+    if (cur && cur.length + p.length + 1 > max) { out.push(cur); cur = p } else cur = cur ? `${cur} ${p}` : p
+  }
+  if (cur) out.push(cur)
+  return out
+}
+
 let ttsQueue = Promise.resolve()
 
 /**
@@ -154,7 +168,7 @@ export function createSpeaker({ onStart, onEnd, onLevel, onSentence } = {}) {
     const my = ++token
     const c = ensure()
     if (c.state === 'suspended') await c.resume()
-    const parts = sentences(text)
+    const parts = speechChunks(sentences(text))
     const plain = [...parts]
     if (tag && parts.length) parts[0] = `${tag} ${parts[0]}`
     onStart?.()
@@ -169,7 +183,8 @@ export function createSpeaker({ onStart, onEnd, onLevel, onSentence } = {}) {
         const audio = await c.decodeAudioData(buf)
         if (my !== token) return
         // tell the screen which words this audio covers, so text and voice stay together
-        const end = text.indexOf(plain[i], spoken) + plain[i].length
+        const at = text.indexOf(plain[i], spoken)
+        const end = at < 0 ? Math.min(text.length, spoken + plain[i].length + 1) : at + plain[i].length
         onSentence?.({ text, from: spoken, to: end, seconds: audio.duration, at: performance.now() })
         spoken = end
         await new Promise((resolve) => {
