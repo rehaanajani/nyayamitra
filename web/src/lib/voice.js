@@ -84,7 +84,8 @@ export async function startListening({ lang, onSegment, onInterim, onSpeechStart
 
 /** Splits text into speakable sentences so the first one plays while the rest synthesize. */
 export function sentences(text) {
-  return (text.match(/[^.!?।\n]+[.!?।]*/g) || [text]).map((s) => s.trim()).filter(Boolean)
+  // a '.' inside a number (1.6 lakh) or after Rs/No is not the end of a sentence
+  return (text.match(/(?:[^.!?।\n]|\.(?=\d)|(?<=\b(?:Rs|No|Sec|Dr|Mr|Mrs|vs))\.)+[.!?।]*/g) || [text]).map((s) => s.trim()).filter(Boolean)
 }
 
 let ttsQueue = Promise.resolve()
