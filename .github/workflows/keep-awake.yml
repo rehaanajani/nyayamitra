@@ -1,0 +1,16 @@
+# Render's free plan sleeps the API after 15 minutes without visitors, and the next
+# visitor then waits about 50 seconds. A small request every 10 minutes keeps it awake.
+name: Keep the API awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping the API
+        run: curl -fsS --max-time 90 --retry 2 https://nyayamitra-api-q427.onrender.com/api/status -o /dev/null -w "API answered %{http_code} in %{time_total}s\n"
