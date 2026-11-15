@@ -62,6 +62,9 @@ class TTSReq(BaseModel):
     role: str = "sahay"
 
 
+_tts_lock = asyncio.Lock()
+
+
 @app.post("/api/tts")
 async def tts(req: TTSReq, request: Request):
     k = keys_from(request)
@@ -69,11 +72,19 @@ async def tts(req: TTSReq, request: Request):
         raise HTTPException(400, "GNANI_API_KEY is not set on the server")
     if not has_voice(req.lang):
         raise HTTPException(400, "Gnani has no voice for this language yet; text only")
-    try:
-        wav = await gnani.synthesize(req.text[:900], req.lang, VOICES.get(req.role, VOICES["sahay"]), k.gnani_key)
-    except gnani.GnaniError as e:
-        raise HTTPException(502, str(e))
-    return Response(wav, media_type="audio/wav")
+    # Gnani allows one voice request at a time per key, and every visitor shares the key:
+    # queue them here, wait out "busy" replies, and never pass on a file with no audio.
+    async with _tts_lock:
+        for attempt in range(4):
+            try:
+                wav = await gnani.synthesize(req.text[:900], req.lang, VOICES.get(req.role, VOICES["sahay"]), k.gnani_key)
+                if len(wav) > 2000:
+                    return Response(wav, media_type="audio/wav")
+                err = "Timbre returned no audio"
+            except gnani.GnaniError as e:
+                err = str(e)
+            await asyncio.sleep(0.6 * (attempt + 1))
+    raise HTTPException(502, err)
 
 
 @app.post("/api/stt")
