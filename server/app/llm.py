@@ -51,7 +51,7 @@ async def chat(keys: Keys, messages: list[dict], *, max_tokens: int = 300,
         routes.append(("kaggle", lambda: _openai_chat(keys.llm_base, keys.llm_key, keys.llm_model,
                                                       messages, max_tokens, temperature, want_json), 20))
     if keys.hf_token:
-        routes.append(("space", lambda: _space_chat(keys.hf_token, messages, max_tokens), 25))
+        routes.append(("space", lambda: _space_chat(keys.hf_token, messages, max_tokens), 12 if fast else 25))
     if keys.fb_base and keys.fb_model:
         def gemini(model):
             return lambda: _openai_chat(keys.fb_base, keys.fb_key, model, messages, max_tokens, temperature, want_json)
