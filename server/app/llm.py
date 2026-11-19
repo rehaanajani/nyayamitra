@@ -34,9 +34,7 @@ _COOLDOWN = {"kaggle": 120, "space": 900, "backup": 60, "backup-fast": 60}
 _failed_at: dict[str, float] = {}
 # Evon gets this long on its own before the next route starts racing it.
 HEDGE_AFTER = 2.5
-# A silent Gemini call gets company after this long. Measured on our project: Flash-Lite
-# answers in ~1.4 s and Flash in 3-5 s, so anything slower than this has probably hung.
-RETRY_FAST_AFTER = 3
+# For the bench and verdicts, a silent Gemini Flash call gets company after this long.
 RETRY_QUALITY_AFTER = 7
 
 
@@ -46,30 +44,32 @@ async def chat(keys: Keys, messages: list[dict], *, max_tokens: int = 300,
     with the quickest Gemini; everything else leads with the one that reasons best."""
     if not keys.has_llm:
         raise NoLLM()
-    routes = []  # (name, start, hard timeout in seconds), Evon first
+    evon = []  # (name, start, hard timeout in seconds)
     if keys.llm_base and keys.llm_model:
-        routes.append(("kaggle", lambda: _openai_chat(keys.llm_base, keys.llm_key, keys.llm_model,
-                                                      messages, max_tokens, temperature, want_json), 20))
+        evon.append(("kaggle", lambda: _openai_chat(keys.llm_base, keys.llm_key, keys.llm_model,
+                                                    messages, max_tokens, temperature, want_json), 20))
     if keys.hf_token:
-        routes.append(("space", lambda: _space_chat(keys.hf_token, messages, max_tokens), 12 if fast else 25))
+        evon.append(("space", lambda: _space_chat(keys.hf_token, messages, max_tokens), 12 if fast else 25))
+    gemini = []
     if keys.fb_base and keys.fb_model:
-        def gemini(model):
+        def g(model):
             return lambda: _openai_chat(keys.fb_base, keys.fb_key, model, messages, max_tokens, temperature, want_json)
-        best = ("backup", gemini(keys.fb_model), 25)
-        quick = ("backup-fast", gemini(keys.fb_fast_model or keys.fb_model), 12 if fast else 25)
-        routes += [quick, best] if fast else [best, quick]
+        best = ("backup", g(keys.fb_model), 25)
+        quick = ("backup-fast", g(keys.fb_fast_model or keys.fb_model), 12 if fast else 25)
+        gemini = [quick, best] if fast else [best, quick]
+    # Spoken replies lead with Evon, which answers in about a second. The bench, case files
+    # and verdicts lead with Gemini Flash, which reasons better, with Evon close behind.
+    routes = evon + gemini if fast else gemini[:1] + evon + gemini[1:]
     now = time.time()
     live = [r for r in routes if now - _failed_at.get(r[0], 0) > _COOLDOWN[r[0]]] or routes[-1:]
-    return await _race(live, RETRY_FAST_AFTER if fast else RETRY_QUALITY_AFTER)
+    return await _race(live, HEDGE_AFTER if fast else RETRY_QUALITY_AFTER)
 
 
-async def _race(routes: list, retry_after: float = RETRY_QUALITY_AFTER) -> str:
-    """Evon routes start together; Gemini joins after HEDGE_AFTER seconds, or at once
-    if every Evon route has already failed. If that Gemini call is still silent after
-    retry_after, the next one joins it. The first good answer wins. Losers are left to
-    finish in the background so their failures still count."""
-    evon = [r for r in routes if not r[0].startswith("backup")]
-    queue = [r for r in routes if r[0].startswith("backup")]
+async def _race(routes: list, gap: float = HEDGE_AFTER) -> str:
+    """Routes start one after another in order: the next joins when the ones running have
+    been silent for `gap` seconds, or at once when they have all failed. The first good
+    answer wins. Losers are left to finish in the background so their failures still count."""
+    queue = list(routes)
     pending: dict[asyncio.Task, str] = {}
     last_err: Exception | None = None
 
@@ -86,14 +86,10 @@ async def _race(routes: list, retry_after: float = RETRY_QUALITY_AFTER) -> str:
         task.add_done_callback(lambda t, n=name: record(t, n))
         pending[task] = name
 
-    for r in evon:
-        launch(*r)
-    if not evon and queue:
+    if queue:
         launch(*queue.pop(0))
     while pending:
-        gemini_running = any(n.startswith("backup") for n in pending.values())
-        done, _ = await asyncio.wait(pending, timeout=(retry_after if gemini_running else HEDGE_AFTER) if queue else None,
-                                     return_when=asyncio.FIRST_COMPLETED)
+        done, _ = await asyncio.wait(pending, timeout=gap if queue else None, return_when=asyncio.FIRST_COMPLETED)
         for task in done:
             pending.pop(task)
             if not task.exception() and task.result():
@@ -119,8 +115,11 @@ async def _openai_chat(base: str, key: str, model: str, messages: list[dict], ma
         "max_tokens": max_tokens,
         "temperature": temperature,
     }
-    if "evon" in model.lower():
-        # Evon is a reasoning model; spoken replies need speed, not visible thinking
+    if "api.vachana.ai" in base:
+        # Gnani's hosted Evon thinks before answering unless told not to; spoken replies need speed
+        body["reasoning_effort"] = "none"
+    elif "evon" in model.lower():
+        # self-hosted Evon (vLLM) takes the same switch through the chat template
         body["chat_template_kwargs"] = {"enable_thinking": False}
     if want_json:
         body["response_format"] = {"type": "json_object"}
