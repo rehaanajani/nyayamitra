@@ -52,7 +52,8 @@ async def transcribe_file(audio: bytes, filename: str, lang: str, key: str) -> d
     for model in dict.fromkeys((STT_MODEL, STT_FALLBACK)):
         data = {
             "model": model,
-            "language_code": lang_info(lang).get("stt", "en-IN"),
+            # v3.0 takes a list of likely languages; v2.5 wants exactly one
+            "language_code": lang_info(lang).get("stt" if model.startswith("prisma-v3") else "stream", "en-IN"),
             "format": STT_FORMAT,
         }
         async with httpx.AsyncClient(timeout=30) as client:
