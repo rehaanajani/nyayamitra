@@ -411,13 +411,18 @@ Rebut the user's latest submission in at most 2 short spoken sentences, includin
     said = [h["text"] for h in history if h["role"] == "opponent" and h.get("text")]
     if said:
         system += "\nYou already said these; make a different point now:\n- " + "\n- ".join(said[-4:])
+    system += f"\nYou act for the other side. Never agree with {case['you_are']} and never repeat their words."
     msgs = [{"role": "system", "content": system}]
-    for h in history[-8:]:
+    for h in history[-8:-1]:
         msgs.append({"role": "user" if h["role"] == "user" else "assistant", "content": h["text"]})
+    latest = history[-1]["text"] if history else ""
+    # spelt out, so the model answers the submission instead of continuing it
+    msgs.append({"role": "user", "content": f'{case["you_are"]} just argued: "{latest}"\n'
+                 f"Reply now as {case['opponent']}: rebut it and argue for your side."})
     try:
         # kept short, like Supreme: a quick reply feels live, a long one feels like a wait
         out = await llm.chat(keys, msgs, max_tokens=110, temperature=0.6, fast=True)
-        if out and not _repeats(out, said):
+        if out and not _repeats(out, said + [latest]):
             return out
     except Exception:
         pass
