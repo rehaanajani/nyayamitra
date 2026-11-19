@@ -48,7 +48,7 @@ async def synthesize(text: str, lang: str, voice: str, key: str, sample_rate: in
 
 async def transcribe_file(audio: bytes, filename: str, lang: str, key: str) -> dict:
     """Prisma REST, clips up to 30 s. Tries the older model once if the main one fails."""
-    out = {}
+    err = ""
     for model in dict.fromkeys((STT_MODEL, STT_FALLBACK)):
         data = {
             "model": model,
@@ -62,12 +62,12 @@ async def transcribe_file(audio: bytes, filename: str, lang: str, key: str) -> d
                 files={"audio_file": (filename, audio)},
                 headers={"X-API-Key-ID": key},
             )
-        if r.status_code != 200:
-            raise GnaniError(f"Prisma {r.status_code}: {r.text[:300]}")
-        out = r.json()
-        if out.get("success", True) is not False:
-            return out
-    return out
+        if r.status_code == 200 and r.json().get("success", True) is not False:
+            return r.json()
+        err = f"Prisma {r.status_code}: {r.text[:300]}"
+        if r.status_code < 500 and r.status_code != 200:
+            break  # a bad request or key: another model won't help
+    raise GnaniError(err)
 
 
 def stream_url() -> str:
