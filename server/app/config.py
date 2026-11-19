@@ -102,7 +102,8 @@ def resolve_keys(_overrides: dict | None = None) -> Keys:
     return Keys(
         gnani_key=os.getenv("GNANI_API_KEY", ""),
         llm_base=os.getenv("LLM_BASE_URL", "").rstrip("/"),
-        llm_key=os.getenv("LLM_API_KEY", ""),
+        # Gnani's hosted Evon takes the same key as Prisma and Timbre
+        llm_key=os.getenv("LLM_API_KEY", "") or (os.getenv("GNANI_API_KEY", "") if "vachana.ai" in os.getenv("LLM_BASE_URL", "") else ""),
         llm_model=os.getenv("LLM_MODEL", ""),
         hf_token=os.getenv("HF_TOKEN", ""),
         fb_base=os.getenv("BACKUP_LLM_BASE_URL", "").rstrip("/"),
