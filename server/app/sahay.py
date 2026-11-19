@@ -6,6 +6,7 @@ always comes from knowledge/routes.json, never from the model.
 """
 
 import json
+import re
 import os
 
 from . import llm
@@ -118,6 +119,20 @@ def _feminine(reply: str, lang: str) -> str:
     return reply
 
 
+_NUMBER_WORDS = ("एक", "दो", "तीन", "चार", "पांच", "पाँच", "छह", "सात", "आठ", "नौ", "दस", "हज़ार", "हजार", "लाख",
+                 "महीने", "महीना", "month", "thousand", "lakh")
+
+
+def _grounded(value: str, heard: str) -> bool:
+    """Models fill in answers nobody gave ("proof: yes"). Keep a fact only when something
+    the caller said backs it: a shared word, or a number for a numeric answer."""
+    low = heard.lower()
+    if any(ch.isdigit() for ch in value):
+        return any(ch.isdigit() for ch in heard) or any(w in low for w in _NUMBER_WORDS)
+    words = [w for w in re.findall(r"\w+", value.lower()) if len(w) >= 3]
+    return any(w in low for w in words)
+
+
 async def turn(keys: Keys, lang: str, state: dict, text: str, history: list[dict]) -> dict:
     out = await _turn(keys, lang, state, text, history)
     out["reply"] = _feminine(out["reply"], lang)
@@ -145,8 +160,10 @@ async def _turn(keys: Keys, lang: str, state: dict, text: str, history: list[dic
         issue_id = result.get("issue_id") or issue_id
         if issue_id not in ISSUES:
             issue_id = None
+        heard = " ".join([text] + [h["text"] for h in history if h.get("role") == "user"])
         for k, v in (result.get("facts") or {}).items():
-            if v and str(v).strip().lower() not in ("null", "none", "unknown"):
+            if v and str(v).strip().lower() not in ("null", "none", "unknown") and \
+                    (k == state.get("pending_key") or _grounded(str(v), heard)):
                 facts[k] = str(v)
         # never ask the same thing twice: an answer the model couldn't file still
         # counts, so keep the caller's own words and move on to the next question
@@ -173,13 +190,22 @@ async def _turn(keys: Keys, lang: str, state: dict, text: str, history: list[dic
     nxt = _next_ask(issue_id, facts)
     if nxt:
         state["pending_key"] = nxt["key"]
-        reply = (result or {}).get("reply") or nxt.get(f"q_{lang}") or nxt["q"]
+        # the next question comes from the checklist, so it is always the right one and never
+        # repeated, whichever model answered; the model only says the warm first sentence
+        q = nxt.get(f"q_{lang}") or (nxt["q"] if lang == "en" else None)
+        ack = ((result or {}).get("ack") or "").strip()
+        if q:
+            reply = f"{ack} {q}" if ack and "?" not in ack else q
+        else:
+            reply = (result or {}).get("reply") or nxt["q"]
         return {"reply": reply, "state": state}
 
     state["pending_key"] = None
     state["done"] = True
     card = build_card(issue_id, facts)
-    reply = (result or {}).get("reply") or _pick({
+    said = (result or {}).get("reply") or ""
+    # the path is on screen now, so the closing line must not ask anything more
+    reply = (said if "?" not in said else "") or _pick({
         "hi": "धन्यवाद। मैंने आपका रास्ता स्क्रीन पर रख दिया है: कहाँ जाना है, क्या ले जाना है, और समय सीमा। मुफ़्त वकील के लिए 15100 पर कॉल कर सकते हैं।",
         "ta": "நன்றி. எங்கு செல்ல வேண்டும், என்ன கொண்டு செல்ல வேண்டும், கால வரம்பு என்ன என்பதை திரையில் வைத்துள்ளேன். இலவச வழக்கறிஞருக்கு 15100 அழையுங்கள்.",
         "en": "Thank you. Your path is on the screen: where to go, what to carry and the deadline. For a free lawyer, call 15100.",
@@ -217,8 +243,9 @@ Rules for "reply":
 - If no facts are missing after this turn, say you have understood and their path is on the screen. Do not list steps.
 - Never give legal conclusions or promise outcomes. Never invent laws, sections or phone numbers.
 - If the issue is unclear, ask what kind of problem it is.
+Also give "ack": one short warm sentence in {style} that acknowledges what they just said, with no question in it. The app adds the next question itself.
 
-Return ONLY JSON: {{"issue_id": "<id or null>", "facts": {{"<key>": "<short value>"}}, "reply": "<spoken reply>"}}
+Return ONLY JSON: {{"issue_id": "<id or null>", "facts": {{"<key>": "<short value>"}}, "ack": "<one sentence, no question>", "reply": "<spoken reply>"}}
 Fact keys must come from the needed list of the chosen issue. If you change issue_id, use that issue's keys: {json.dumps({i["id"]: [a["key"] for a in i["ask"]] for i in ROUTES["issues"]})}"""
     msgs = [{"role": "system", "content": system}]
     for h in history[-8:]:
