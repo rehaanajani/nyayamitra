@@ -3,11 +3,15 @@
 Docs: https://docs.gnani.ai — base URL api.vachana.ai, auth header X-API-Key-ID.
 """
 
+import os
+
 import httpx
 
 from .config import GNANI_BASE, GNANI_WS_BASE, STT_FORMAT, lang_info
 
-STT_MODEL = "prisma-v3.0"
+# Set STT_MODEL=prisma-v2.5 to switch live transcription when v3.0 is having trouble.
+STT_MODEL = os.getenv("STT_MODEL", "prisma-v3.0")
+STT_FALLBACK = "prisma-v2.5"
 TTS_MODEL = "timbre-v3.0"
 
 
@@ -43,22 +47,27 @@ async def synthesize(text: str, lang: str, voice: str, key: str, sample_rate: in
 
 
 async def transcribe_file(audio: bytes, filename: str, lang: str, key: str) -> dict:
-    """Prisma REST, clips up to 30 s."""
-    data = {
-        "model": STT_MODEL,
-        "language_code": lang_info(lang).get("stt", "en-IN"),
-        "format": STT_FORMAT,
-    }
-    async with httpx.AsyncClient(timeout=30) as client:
-        r = await client.post(
-            f"{GNANI_BASE}/stt/v3",
-            data=data,
-            files={"audio_file": (filename, audio)},
-            headers={"X-API-Key-ID": key},
-        )
-    if r.status_code != 200:
-        raise GnaniError(f"Prisma {r.status_code}: {r.text[:300]}")
-    return r.json()
+    """Prisma REST, clips up to 30 s. Tries the older model once if the main one fails."""
+    out = {}
+    for model in dict.fromkeys((STT_MODEL, STT_FALLBACK)):
+        data = {
+            "model": model,
+            "language_code": lang_info(lang).get("stt", "en-IN"),
+            "format": STT_FORMAT,
+        }
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(
+                f"{GNANI_BASE}/stt/v3",
+                data=data,
+                files={"audio_file": (filename, audio)},
+                headers={"X-API-Key-ID": key},
+            )
+        if r.status_code != 200:
+            raise GnaniError(f"Prisma {r.status_code}: {r.text[:300]}")
+        out = r.json()
+        if out.get("success", True) is not False:
+            return out
+    return out
 
 
 def stream_url() -> str:
