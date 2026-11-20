@@ -36,6 +36,37 @@ function wsUrl(path) {
  * onInterim(text) every ~450 ms while speaking (partial_transcript: Devanagari, numbers as words);
  * onSpeechStart() when the user starts talking (used for barge-in); onLevel(0..1) for the orb.
  */
+// Prisma sometimes fails every clip for a while. Once it does, this session hears
+// through the browser's own recogniser (Chrome, Edge, Safari) instead of going silent.
+const BrowserRec = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
+let useBrowser = false
+
+function browserListener({ lang, onSegment, onInterim, onSpeechStart, onError }) {
+  const rec = new BrowserRec()
+  rec.lang = lang === 'en' ? 'en-IN' : `${lang}-IN`
+  rec.continuous = true
+  rec.interimResults = true
+  let live = true
+  rec.onspeechstart = () => onSpeechStart?.()
+  rec.onresult = (e) => {
+    let interim = ''
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const text = e.results[i][0].transcript.trim()
+      if (!text) continue
+      if (e.results[i].isFinal) onSegment?.(text, {})
+      else interim += ` ${text}`
+    }
+    if (interim.trim()) onInterim?.(interim.trim(), {})
+  }
+  rec.onerror = (e) => {
+    if (e.error === 'not-allowed') { live = false; onError?.('Microphone permission was blocked.') }
+  }
+  // the browser ends a session after a pause; keep listening until told to stop
+  rec.onend = () => { if (live) try { rec.start() } catch { /* already running */ } }
+  rec.start()
+  return { stop() { live = false; try { rec.abort() } catch { /* already stopped */ } } }
+}
+
 export async function startListening({ lang, onSegment, onInterim, onSpeechStart, onLevel, onError }) {
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
@@ -47,10 +78,21 @@ export async function startListening({ lang, onSegment, onInterim, onSpeechStart
   const node = new AudioWorkletNode(ctx, 'pcm16')
   src.connect(node)
 
+  let backup = useBrowser && BrowserRec ? browserListener({ lang, onSegment, onInterim, onSpeechStart, onError }) : null
+  const switchToBrowser = (why) => {
+    if (backup) return
+    if (!BrowserRec) { onError?.(why); return }
+    useBrowser = true
+    try { ws.close() } catch { /* already closed */ }
+    backup = browserListener({ lang, onSegment, onInterim, onSpeechStart, onError })
+  }
+
   const ws = new WebSocket(wsUrl('/ws/stt'))
   ws.binaryType = 'arraybuffer'
+  if (backup) ws.close()
   let open = false
   ws.onopen = () => {
+    if (backup) return
     open = true
     ws.send(JSON.stringify({ type: 'start', lang, sample_rate: 16000 }))
   }
@@ -61,9 +103,9 @@ export async function startListening({ lang, onSegment, onInterim, onSpeechStart
     if (m.type === 'speech_start') onSpeechStart?.()
     else if (m.type === 'partial_transcript' && text) onInterim?.(text, m)
     else if ((m.type === 'final_transcript' || m.type === 'transcript') && text) onSegment?.(text, m)
-    else if (m.type === 'error') onError?.(m.message || m.error || 'Speech error')
+    else if (m.type === 'error') switchToBrowser(m.message || m.error || 'Speech error')
   }
-  ws.onerror = () => onError?.('Could not reach the speech server')
+  ws.onerror = () => switchToBrowser('Could not reach the speech server')
 
   node.port.onmessage = ({ data }) => {
     if (data.level !== undefined) onLevel?.(Math.min(1, data.level * 2.2))
@@ -73,6 +115,7 @@ export async function startListening({ lang, onSegment, onInterim, onSpeechStart
   return {
     commit() { if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'commit' })) },
     stop() {
+      backup?.stop()
       try { ws.close() } catch { /* already closed */ }
       node.disconnect(); src.disconnect()
       stream.getTracks().forEach((t) => t.stop())
